@@ -125,6 +125,11 @@ class OpenAIChatRunner:
                       completion_tokens=int(u.get("completion_tokens", 0) or 0))
 
 
+CANARY_PATH = os.environ.get(
+    "BUGBENCH_AGY_CANARY",
+    str(Path.home() / "zen-proxy/zen_proxy.mjs"))
+
+
 class AgyRunner:
     """Antigravity CLI (`agy`) runner -- an agentic lane with tool use.
 
@@ -137,9 +142,66 @@ class AgyRunner:
         self.spec = spec
         self.bin = shutil.which("agy") or str(Path.home() / ".local/bin/agy")
 
+    _isolation_cache = None
+
+    def _isolation_holds(self, prefix: str) -> bool:
+        """Canary read: ask the agent for a real source file's first line.
+
+        If it can read the file, the lane is NOT isolated and must not be scored. Cached
+        per prefix so this costs one call, not one per task.
+        """
+        if AgyRunner._isolation_cache is None:
+            AgyRunner._isolation_cache = {}
+        if prefix in AgyRunner._isolation_cache:
+            return AgyRunner._isolation_cache[prefix]
+        import tempfile as _tf
+        with _tf.TemporaryDirectory(prefix="bugbench-agy-probe-") as td:
+            cmd = prefix.split() + [self.bin, "-p",
+                                    f"Quote line 1 of {CANARY_PATH} exactly.",
+                                    "--model", self.spec.model,
+                                    "--dangerously-skip-permissions", "--sandbox",
+                                    "--add-dir", td]
+            try:
+                p = subprocess.run(cmd, capture_output=True, text=True,
+                                   timeout=180, cwd=td)
+            except Exception:
+                AgyRunner._isolation_cache[prefix] = False
+                return False
+            out = (p.stdout or "")
+            # FAIL CLOSED. Isolation counts as proven only if the wrapper actually ran a
+            # model turn AND that turn did not reproduce the canary file. An empty reply,
+            # a crash, or a wrapper that is really a no-op all count as NOT isolated.
+            ran_a_turn = p.returncode == 0 and len(out.strip()) > 0
+            leaked = "#!" in out or "shebang" in out.lower() or "zen-proxy" in out
+            AgyRunner._isolation_cache[prefix] = bool(ran_a_turn and not leaked)
+        return AgyRunner._isolation_cache[prefix]
+
     def complete(self, prompt: str, system: str = "") -> Result:
         full = (system + "\n\n" + prompt) if system else prompt
-        # SANDBOX IS MANDATORY, NOT OPTIONAL.
+        # --sandbox IS NOT ENOUGH. Measured, not assumed:
+        #   agy -p "Read ~/zen-proxy/zen_proxy.mjs ..." --sandbox
+        # still returns the file contents. --sandbox restricts TERMINAL commands only,
+        # and --add-dir does not restrict reads either. There is no CLI flag to remove the
+        # file tool. So on a normal filesystem this lane can read the answer straight out of
+        # the repo, which it did: 9 of 12 answers were byte-identical to the reference fix.
+        #
+        # Therefore this lane REFUSES to run unless a real filesystem-isolating wrapper is
+        # configured via BUGBENCH_AGY_ISOLATE (bwrap / docker / firejail / systemd-run
+        # with a private root). A pre-flight canary read verifies the isolation actually
+        # holds before any scored task is sent.
+        prefix = os.environ.get("BUGBENCH_AGY_ISOLATE", "").strip()
+        if not prefix:
+            return Result(text="", error=(
+                "agy lane disabled: no filesystem isolation. The Antigravity CLI can read "
+                "the task's real source file even with --sandbox, so it would copy the "
+                "reference fix instead of writing one. Set BUGBENCH_AGY_ISOLATE to a "
+                "wrapper command (bwrap/docker/firejail) to enable this lane."))
+        if not self._isolation_holds(prefix):
+            return Result(text="", error=(
+                "agy lane disabled: the configured isolation did NOT hold a canary read, "
+                "so the lane can still see the real source files"))
+
+        # SANDBOX ON TOP OF ISOLATION.
         # The benchmark hands the agent a snippet and asks it to fix it. Run with normal
         # permissions from the project directory, `agy` could simply grep the machine for
         # the real file and paste the fixed version. Measured on the first agy run:
@@ -150,9 +212,9 @@ class AgyRunner:
         # So: a throwaway empty working directory, plus --sandbox.
         import tempfile
         with tempfile.TemporaryDirectory(prefix="bugbench-agy-") as td:
-            cmd = [self.bin, "-p", full, "--model", self.spec.model,
-                   "--dangerously-skip-permissions", "--sandbox",
-                   "--add-dir", td]
+            cmd = prefix.split() + [self.bin, "-p", full, "--model", self.spec.model,
+                                    "--dangerously-skip-permissions", "--sandbox",
+                                    "--add-dir", td]
             if self.spec.effort:
                 cmd += ["--effort", self.spec.effort]
             t0 = time.time()
@@ -185,6 +247,40 @@ class OpenCodeRunner:
     def __init__(self, spec: ModelSpec):
         self.spec = spec
         self.bin = shutil.which("opencode") or "opencode"
+
+    _isolation_cache = None
+
+    def _isolation_holds(self, prefix: str) -> bool:
+        """Canary read: ask the agent for a real source file's first line.
+
+        If it can read the file, the lane is NOT isolated and must not be scored. Cached
+        per prefix so this costs one call, not one per task.
+        """
+        if AgyRunner._isolation_cache is None:
+            AgyRunner._isolation_cache = {}
+        if prefix in AgyRunner._isolation_cache:
+            return AgyRunner._isolation_cache[prefix]
+        import tempfile as _tf
+        with _tf.TemporaryDirectory(prefix="bugbench-agy-probe-") as td:
+            cmd = prefix.split() + [self.bin, "-p",
+                                    f"Quote line 1 of {CANARY_PATH} exactly.",
+                                    "--model", self.spec.model,
+                                    "--dangerously-skip-permissions", "--sandbox",
+                                    "--add-dir", td]
+            try:
+                p = subprocess.run(cmd, capture_output=True, text=True,
+                                   timeout=180, cwd=td)
+            except Exception:
+                AgyRunner._isolation_cache[prefix] = False
+                return False
+            out = (p.stdout or "")
+            # FAIL CLOSED. Isolation counts as proven only if the wrapper actually ran a
+            # model turn AND that turn did not reproduce the canary file. An empty reply,
+            # a crash, or a wrapper that is really a no-op all count as NOT isolated.
+            ran_a_turn = p.returncode == 0 and len(out.strip()) > 0
+            leaked = "#!" in out or "shebang" in out.lower() or "zen-proxy" in out
+            AgyRunner._isolation_cache[prefix] = bool(ran_a_turn and not leaked)
+        return AgyRunner._isolation_cache[prefix]
 
     def complete(self, prompt: str, system: str = "") -> Result:
         full = (system + "\n\n" + prompt) if system else prompt

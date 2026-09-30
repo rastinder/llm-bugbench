@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pathlib
 import sys
 from pathlib import Path
@@ -60,6 +61,30 @@ def cmd_run(args) -> int:
         import random
         random.Random(args.seed).shuffle(tasks)
     tasks = tasks[:args.limit]
+    if args.topup:
+        # only run the tasks this model has NOT already attempted, so a model can be
+        # brought up to a fixed denominator without re-spending tokens on work it did
+        import json as _json
+        seen = set()
+        if os.path.exists(args.results):
+            with open(args.results) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        row = _json.loads(line)
+                    except _json.JSONDecodeError:
+                        continue
+                    if row.get("model") == args.model:
+                        seen.add(row.get("task_id"))
+        before = len(tasks)
+        tasks = [t for t in tasks if t.task_id not in seen]
+        print(f"topup: {before} in scope, {len(seen)} already done, "
+              f"running {len(tasks)} new", flush=True)
+        if not tasks:
+            print("nothing to do")
+            return 0
     judge = (Judge(runner=json_runner(min_chars=10)) if not args.no_judge
              else Judge(spec=None))
     # persist incrementally: a timeout on a slow/rate-limited model used to throw away
@@ -171,6 +196,8 @@ def main(argv=None) -> int:
     r.add_argument("--judge-ref-aware", action="store_true")
     r.add_argument("--results", default=RESULTS)
     r.add_argument("--append", action="store_true")
+    r.add_argument("--topup", action="store_true",
+                   help="only run tasks this model has not attempted yet")
     r.set_defaults(func=cmd_run)
 
     rep = sub.add_parser("report", help="leaderboard")

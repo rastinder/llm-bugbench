@@ -718,3 +718,49 @@ def test_restricting_to_a_common_set_makes_denominators_equal():
     assert {m["tasks"] for m in leaderboard_marks(rows, tasks)} == {2, 1}
     same = leaderboard_marks(rows, tasks, restrict_to={"T1"})
     assert {m["tasks"] for m in same} == {1}
+
+
+def test_topup_only_runs_tasks_a_model_has_not_attempted(tmp_path, monkeypatch,
+                                                       fake_model_server):
+    """Bringing a model up to a fixed denominator must not re-spend tokens on work it
+    already did."""
+    tasks = [make_task(tmp_path, f"B{i:04d}") for i in range(1, 5)]
+    p = write_task_file(tmp_path, tasks)
+    res = tmp_path / "r.jsonl"
+    res.write_text("\n".join(
+        json.dumps({"model": "fake", "task_id": t.task_id, "combined": 0.5,
+                    "diagnose": {"total": 0.5}, "repair": {"total": 0.5}})
+        for t in tasks[:2]) + "\n")
+    spec = ModelSpec(name="fake",
+                     base_url=f"http://127.0.0.1:{fake_model_server.server_port}/v1",
+                     api_key=REGISTRY_KEY, model="m")
+    monkeypatch.setattr("bugbench.runners.REGISTRY", [spec])
+    from bugbench.cli import main
+    rc = main(["run", "fake", "--data", str(p), "--results", str(res),
+               "--limit", "4", "--topup", "--stages", "repair",
+               "--category", "all", "--append"])
+    assert rc == 0
+    from bugbench.runner import load_results
+    got = {r["task_id"] for r in load_results(str(res)) if r["model"] == "fake"}
+    assert got == {t.task_id for t in tasks}      # all 4 covered, none duplicated
+
+
+def test_agy_lane_refuses_to_run_without_filesystem_isolation(monkeypatch):
+    """--sandbox is NOT isolation: measured, agy still read the real source file through
+    it. Without BUGBENCH_AGY_ISOLATE the lane must refuse rather than score a model that
+    can copy the answer out of the repo."""
+    from bugbench.runners import AgyRunner, ModelSpec
+    monkeypatch.delenv("BUGBENCH_AGY_ISOLATE", raising=False)
+    r = AgyRunner(ModelSpec(name="a", kind="agy", model="gemini-3.8-flash-high")).complete("hi")
+    assert not r.ok
+    assert "isolation" in r.error
+    assert "BUGBENCH_AGY_ISOLATE" in r.error
+
+
+def test_agy_lane_refuses_when_the_configured_isolation_leaks(monkeypatch):
+    from bugbench.runners import AgyRunner, ModelSpec
+    AgyRunner._isolation_cache = None
+    monkeypatch.setenv("BUGBENCH_AGY_ISOLATE", "true")   # no isolation at all
+    r = AgyRunner(ModelSpec(name="a", kind="agy", model="m")).complete("hi")
+    assert not r.ok
+    assert "isolation did NOT hold" in r.error
