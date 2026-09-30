@@ -92,13 +92,21 @@ def cmd_report(args) -> int:
         from bugbench.models import load_tasks as _lt
         try:
             tasks = {t.task_id: t for t in _lt(args.data)}
-            marks = leaderboard_marks(rows, tasks)
-            print(f"{'model':32s} {'found':>12s} {'fixed':>12s} {'same':>9s} "
-                  f"{'untouched':>10s} {'score':>6s}")
-            for m in marks:
-                print(f"{m['model']:32s} {m['found_str']:>12s} {m['fixed_str']:>12s} "
-                      f"{m['same_fix']:>4}/{m['tasks']:<4d} {m['untouched']:>5}/{m['tasks']:<4d} "
-                      f"{m['score_pct']:5.1f}%")
+            from bugbench.marks import common_task_set
+            common = common_task_set(rows)
+            print(f"{'model':32s} {'found':>13s} {'fixed':>13s} {'same':>9s} "
+                  f"{'untouch':>9s} {'score':>7s}")
+            for m in leaderboard_marks(rows, tasks):
+                print(f"{m['model']:32s} {m['found_str']:>13s} {m['fixed_str']:>13s} "
+                      f"{m['same_fix']:>4}/{m['tasks']:<4d} {m['untouched']:>4}/{m['tasks']:<4d} "
+                      f"{m['score_pct']:6.1f}%")
+            print(f"\n-- SAME-TASK COMPARISON ({len(common)} tasks every model above "
+                  f"attempted) --")
+            print(f"{'model':32s} {'found':>13s} {'fixed':>13s} {'tried':>7s} {'score':>7s}")
+            for m in leaderboard_marks(rows, tasks, restrict_to=common):
+                flag = "" if m["attempted"] == m["tasks"] else "  <- partial"
+                print(f"{m['model']:32s} {m['found_str']:>13s} {m['fixed_str']:>13s} "
+                      f"{m['attempted']:>3}/{m['tasks']:<3d} {m['score_pct']:6.1f}%{flag}")
             print()
         except Exception as e:
             print(f"(markers unavailable: {e})", file=sys.stderr)

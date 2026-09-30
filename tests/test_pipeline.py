@@ -688,3 +688,33 @@ def test_file_read_leak_rows_are_quarantined_from_the_headline(tmp_path):
                      "patch_reproduction": 0.3, "candidate": "def f():\n    return 1\n"}}
     trusted, quar = clean_rows([leak, ok], {"L1": t}, roots=(str(tmp_path),))
     assert leak in quar and ok in trusted
+
+
+def test_common_task_set_only_keeps_tasks_seen_by_several_models():
+    from bugbench.marks import common_task_set
+    rows = [{"model": "a", "task_id": "T1"}, {"model": "a", "task_id": "T2"},
+            {"model": "b", "task_id": "T1"}, {"model": "b", "task_id": "T3"}]
+    assert common_task_set(rows, min_models=2) == {"T1"}
+
+
+def test_restricting_to_a_common_set_makes_denominators_equal():
+    from bugbench.marks import leaderboard_marks
+    t1, t2 = make_task(None, task_id="T1"), make_task(None, task_id="T2")
+    rows = [
+        {"model": "a", "task_id": "T1", "combined": 1.0,
+         "diagnose": {"total": 1.0, "location_match": 1.0, "judge_agreement": 1.0},
+         "repair": {"total": 1.0, "judge_agreement": 1.0, "patch_reproduction": 1.0,
+                    "candidate": t1.reference_fix}},
+        {"model": "a", "task_id": "T2", "combined": 0.0,
+         "diagnose": {"total": 0.0, "location_match": 0.0, "judge_agreement": 0.0},
+         "repair": {"total": 0.0, "judge_agreement": 0.0, "patch_reproduction": 0.0,
+                    "candidate": t2.buggy}},
+        {"model": "b", "task_id": "T1", "combined": 0.5,
+         "diagnose": {"total": 0.5, "location_match": 1.0, "judge_agreement": 0.5},
+         "repair": {"total": 0.5, "judge_agreement": 1.0, "patch_reproduction": 0.4,
+                    "candidate": "def f():\n    return 1\n"}},
+    ]
+    tasks = {"T1": t1, "T2": t2}
+    assert {m["tasks"] for m in leaderboard_marks(rows, tasks)} == {2, 1}
+    same = leaderboard_marks(rows, tasks, restrict_to={"T1"})
+    assert {m["tasks"] for m in same} == {1}

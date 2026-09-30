@@ -98,8 +98,37 @@ def clean_rows(rows: list[dict], tasks: dict,
     return trusted, quarantined
 
 
-def leaderboard_marks(rows: list[dict], tasks: dict) -> list[dict]:
-    """`N bugs found out of M` + 0-100% scores, per model."""
+def common_task_set(rows: list[dict], min_models: int = 2) -> set[str]:
+    """Task ids attempted by at least `min_models` models.
+
+    Model runs used different `--limit` values, so each row's denominator (M) is the number
+    of tasks THAT model saw -- not the number of bugs in the dataset. Because the runner
+    shuffles with a fixed seed the sets are nested (limit-10 is a prefix of limit-20), so
+    the counts are comparable, but only on the shared prefix. Anything outside it is not a
+    fair comparison, so this returns the comparable set.
+    """
+    per: dict[str, set] = defaultdict(set)
+    for r in rows:
+        per[r["model"]].add(r["task_id"])
+    counts: dict[str, int] = defaultdict(int)
+    for ids in per.values():
+        for t in ids:
+            counts[t] += 1
+    return {t for t, c in counts.items() if c >= min_models}
+
+
+def leaderboard_marks(rows: list[dict], tasks: dict,
+                      restrict_to: set[str] | None = None) -> list[dict]:
+    """`N bugs found out of M` + 0-100% scores, per model.
+
+    `restrict_to` forces EVERY model onto the SAME denominator: `found`/`fixed` are always
+    reported out of len(restrict_to), never out of what that model happened to attempt.
+    That is the only way the counts are directly comparable. A model that attempted fewer
+    of the common tasks has its `attempted` column exposed so the gap is visible.
+    """
+    shared_n = len(restrict_to) if restrict_to is not None else None
+    if restrict_to is not None:
+        rows = [r for r in rows if r["task_id"] in restrict_to]
     agg = defaultdict(lambda: {"found": 0, "fixed": 0, "same": 0, "equiv": 0,
                                 "untouched": 0, "n": 0, "comb": [], "diag": [],
                                 "rep": []})
@@ -122,19 +151,21 @@ def leaderboard_marks(rows: list[dict], tasks: dict) -> list[dict]:
         c, clo, chi = bootstrap_ci(a["comb"])
         d, _, _ = bootstrap_ci(a["diag"])
         p, _, _ = bootstrap_ci(a["rep"])
+        den = shared_n if shared_n is not None else n
         out.append({
             "model": model,
-            "tasks": n,
+            "tasks": den,
+            "attempted": n,
             "bugs_found": a["found"],
-            "found_str": f"{a['found']}/{n} ({_pct(a['found'], n)}%)",
+            "found_str": f"{a['found']}/{den} ({_pct(a['found'], den)}%)",
             "bugs_fixed": a["fixed"],
-            "fixed_str": f"{a['fixed']}/{n} ({_pct(a['fixed'], n)}%)",
+            "fixed_str": f"{a['fixed']}/{den} ({_pct(a['fixed'], den)}%)",
             "same_fix": a["same"],
-            "same_fix_str": f"{a['same']}/{n} ({_pct(a['same'], n)}%)",
+            "same_fix_str": f"{a['same']}/{den} ({_pct(a['same'], den)}%)",
             "equiv_fix": a["equiv"],
-            "equiv_fix_str": f"{a['equiv']}/{n} ({_pct(a['equiv'], n)}%)",
+            "equiv_fix_str": f"{a['equiv']}/{den} ({_pct(a['equiv'], den)}%)",
             "untouched": a["untouched"],
-            "untouched_str": f"{a['untouched']}/{n} ({_pct(a['untouched'], n)}%)",
+            "untouched_str": f"{a['untouched']}/{den} ({_pct(a['untouched'], den)}%)",
             "score_pct": round(c, 1),
             "ci95": f"{clo}-{chi}",
             "diagnose_pct": round(d, 1),
