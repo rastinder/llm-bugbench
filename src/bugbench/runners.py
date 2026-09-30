@@ -144,8 +144,9 @@ class AgyRunner:
         # permissions from the project directory, `agy` could simply grep the machine for
         # the real file and paste the fixed version. Measured on the first agy run:
         # 8 of 11 answers were BYTE-IDENTICAL to the historical fix, because the agent
-        # read /home/ras/zen-proxy/zen_proxy.mjs, /home/ras/llm-scout/scout_server.py and
-        # friends and copied the answer out of the repo. That is not a capability score.
+        # read the real source file for several tasks straight off disk (e.g. the user's
+        # own zen-proxy/ and llm-scout/ projects) and copied the answer out of the repo.
+        # That is not a capability score.
         # So: a throwaway empty working directory, plus --sandbox.
         import tempfile
         with tempfile.TemporaryDirectory(prefix="bugbench-agy-") as td:

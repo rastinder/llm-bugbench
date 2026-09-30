@@ -14,6 +14,7 @@ threshold:
   untouched      the candidate is ~identical to the buggy snippet (a null answer).
 """
 from __future__ import annotations
+from pathlib import Path
 
 from collections import defaultdict
 from difflib import SequenceMatcher
@@ -76,7 +77,7 @@ def mark_all(rows: list[dict], tasks: dict) -> list[dict]:
 
 
 def clean_rows(rows: list[dict], tasks: dict,
-               roots=("/home/ras", "/root", "/home")) -> tuple[list[dict], list[dict]]:
+               roots=("/root", "/home") + tuple(str(x) for x in [Path.home()])) -> tuple[list[dict], list[dict]]:
     """Split rows into trusted and quarantined.
 
     A row where the answer is byte-identical to the historical fix AND the real source

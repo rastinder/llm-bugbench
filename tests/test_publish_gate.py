@@ -103,7 +103,7 @@ def test_public_dataset_has_no_session_identifiers():
 
 def test_redaction_actually_replaces_and_is_deterministic():
     from data.raw.scripts.sanitize_for_publish import redact  # type: ignore
-    secret = "sk-0123456789abcdefghijklmnopqrstuvwxyz"
+    secret = "sk-" + "0" * 12 + "x" * 20   # built at runtime: no key literal in source
     out, n = redact(f'KEY = os.environ.get("K", "{secret}")')
     assert n >= 1
     assert secret not in out
@@ -114,9 +114,9 @@ def test_redaction_actually_replaces_and_is_deterministic():
 
 def test_redaction_handles_pii_without_touching_benchmark_semantics():
     from data.raw.scripts.sanitize_for_publish import redact  # type: ignore
-    out, n = redact("connect from 10.0.0.5 to 152.67.24.166 as ras in /home/ras/x.py")
-    assert "152.67.24.166" not in out
-    assert "/home/ras" not in out
+    out, n = redact("connect from 198.51.100.7 to 203.0.113.5 as ras in /home/example/x.py")
+    assert "203.0.113.5" not in out
+    assert "/home/example" not in out
     assert "<IP:" in out and "<HOME:" in out
 
 

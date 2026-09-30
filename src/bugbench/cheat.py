@@ -17,6 +17,7 @@ argued with rather than trusted blindly.
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from collections import defaultdict
 from difflib import SequenceMatcher
 
@@ -44,7 +45,7 @@ def _ratio(a: str, b: str) -> float:
     return SequenceMatcher(None, a, b).ratio()
 
 
-def source_file_on_disk(file_name: str, roots=("/home/ras", "/root", "/home")) -> str | None:
+def source_file_on_disk(file_name: str, roots=("/root", "/home") + tuple(str(x) for x in [Path.home()])) -> str | None:
     """Is the task's real source file readable from disk?
 
     An agentic lane (one with shell/file tools) can grep the machine for the file the
@@ -71,7 +72,7 @@ def source_file_on_disk(file_name: str, roots=("/home/ras", "/root", "/home")) -
 
 
 def check_row(row: dict, task, judge_rationale: str = "",
-              roots=("/home/ras", "/root", "/home")) -> dict:
+              roots=("/root", "/home") + tuple(str(x) for x in [Path.home()])) -> dict:
     """Return a per-row verdict with every individual signal."""
     rep = row.get("repair") or {}
     cand = rep.get("candidate") or ""

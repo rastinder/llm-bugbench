@@ -15,8 +15,9 @@ import re
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve()
-    .parents[3] / "src"))
+ROOT = pathlib.Path(__file__).resolve().parents[3]
+
+sys.path.insert(0, str(ROOT / "/src"))
 from bugbench.models import Task, load_tasks, save_tasks  # noqa: E402
 
 # context words -> replacement. Matched case-insensitively, whole-token where it matters.
@@ -90,8 +91,8 @@ def scrub(task: Task) -> Task:
 
 
 def main() -> int:
-    src = "/home/ras/llm-bugbench/data/tasks.public.jsonl"
-    dst = "/home/ras/llm-bugbench/data/tasks.public.anonymised.jsonl"
+    src = str(ROOT / "/data/tasks.public.jsonl")
+    dst = str(ROOT / "/data/tasks.public.anonymised.jsonl")
     tasks = load_tasks(src)
     out = [scrub(t) for t in tasks]
     save_tasks(out, dst)

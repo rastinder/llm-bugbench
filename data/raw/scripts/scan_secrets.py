@@ -6,10 +6,11 @@ import json
 import re
 import pathlib
 import sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[3]
 from collections import Counter, defaultdict
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve()
-    .parents[3] / "src"))
+sys.path.insert(0, str(ROOT / "/src"))
 from bugbench.models import load_tasks  # noqa: E402
 
 PATTERNS = {

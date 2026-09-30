@@ -6,7 +6,8 @@ import re
 import sqlite3
 from collections import defaultdict
 
-DB = "/home/ras/.local/share/opencode/opencode.db"
+DB = os.environ.get("BUGBENCH_HISTORY_DB",
+                    str(pathlib.Path.home() / ".local/share/opencode/opencode.db"))
 OUT = "/tmp/opencode/bench/data/edit_pairs.jsonl"
 
 CODE_EXT = (".py", ".js", ".ts", ".tsx", ".jsx", ".sh", ".mjs", ".cjs", ".go",

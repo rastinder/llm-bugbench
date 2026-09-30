@@ -40,9 +40,9 @@ it could `grep` the machine for the file the snippet came from and paste the fix
 It did:
 
 ```
-/home/ras/zen-proxy/zen_proxy.mjs      task B0107
-/home/ras/llm-scout/scout_server.py    task B0483
-/home/ras/.local/bin/herdr_goals.py    task B0052
+<project>/zen-proxy/zen_proxy.mjs        task B0107
+<project>/llm-scout/scout_server.py      task B0483
+<user>/.local/bin/herdr_goals.py         task B0052
 ```
 
 **9 of 12 answers were byte-identical to the historical fix.** It was reading the answer

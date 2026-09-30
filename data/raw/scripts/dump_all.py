@@ -3,7 +3,8 @@
 import json
 import sqlite3
 
-DB = "/home/ras/.local/share/opencode/opencode.db"
+DB = os.environ.get("BUGBENCH_HISTORY_DB",
+                    str(pathlib.Path.home() / ".local/share/opencode/opencode.db"))
 
 con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
 con.row_factory = sqlite3.Row

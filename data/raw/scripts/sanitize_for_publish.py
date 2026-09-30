@@ -17,8 +17,9 @@ import re
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve()
-    .parents[3] / "src"))
+ROOT = pathlib.Path(__file__).resolve().parents[3]
+
+sys.path.insert(0, str(ROOT / "/src"))
 from bugbench.models import Task, load_tasks, save_tasks  # noqa: E402
 
 # --- secret patterns: these must NEVER survive into a public file ---------------
@@ -148,7 +149,7 @@ def main() -> int:
                     d[f], k = _secrets_only(d[f])
                     n2 += k
             out2.append(Task.from_dict(d))
-        p2 = "/home/ras/llm-bugbench/data/tasks.private.jsonl"
+        p2 = str(ROOT / "/data/tasks.private.jsonl")
         save_tasks(out2, p2)
         print(f"wrote {len(out2)} private tasks -> {p2} ({n2} credential replacements)")
         return _verify(p2, strict=False)
@@ -159,7 +160,7 @@ def main() -> int:
         total += k
         out.append(st)
 
-    path = "/home/ras/llm-bugbench/data/tasks.public.jsonl"
+    path = str(ROOT / "/data/tasks.public.jsonl")
     save_tasks(out, path)
     print(f"wrote {len(out)} sanitized tasks -> {path}")
     print(f"replacements: {total}")
