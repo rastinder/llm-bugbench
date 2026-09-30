@@ -157,40 +157,78 @@ class AgyRunner:
         self.spec = spec
         self.bin = shutil.which("agy") or str(Path.home() / ".local/bin/agy")
 
-    _isolation_cache = None
+    _isolation_lock = threading.Lock()
+
+    @classmethod
+    def _isolation_path(cls) -> Path:
+        return Path(os.environ.get(
+            "BUGBENCH_AGY_ISOLATION_CACHE",
+            Path.home() / ".cache/bugbench-agy-isolation.json"))
+
+    @classmethod
+    def _isolation_store(cls) -> dict:
+        """Disk-backed canary verdicts, keyed by wrapper prefix.
+
+        Filesystem isolation is a property of the WRAPPER, not of the model, so the
+        canary is paid once and reused by every model in every later process. Before
+        this it was per-process and per-model: 14 lanes each paid minutes for a slow
+        model, and any timeout was silently read as "not isolated" -- which is exactly
+        how the whole agentic fleet ended up blocked.
+        """
+        try:
+            return json.loads(cls._isolation_path().read_text())
+        except Exception:
+            return {}
+
+    @classmethod
+    def _isolation_save(cls, store: dict) -> None:
+        p = cls._isolation_path()
+        try:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(json.dumps(store))
+        except Exception:
+            pass
 
     def _isolation_holds(self, prefix: str) -> bool:
         """Canary read: ask the agent for a real source file's first line.
 
-        If it can read the file, the lane is NOT isolated and must not be scored. Cached
-        per prefix so this costs one call, not one per task.
+        If it can read the file, the lane is NOT isolated and must not be scored.
         """
-        if AgyRunner._isolation_cache is None:
-            AgyRunner._isolation_cache = {}
-        if prefix in AgyRunner._isolation_cache:
-            return AgyRunner._isolation_cache[prefix]
+        with AgyRunner._isolation_lock:
+            store = self._isolation_store()
+            if prefix in store:
+                return bool(store[prefix])
+            verdict = self._probe_isolation(prefix)
+            store[prefix] = verdict
+            self._isolation_save(store)
+            return verdict
+
+    def _probe_isolation(self, prefix: str) -> bool:
         import shlex
         import tempfile as _tf
         with _tf.TemporaryDirectory(prefix="bugbench-agy-probe-") as td:
             cmd = shlex.split(prefix) + [self.bin, "-p",
-                                    f"Quote line 1 of {CANARY_PATH} exactly.",
-                                    "--model", self.spec.model,
-                                    "--dangerously-skip-permissions", "--sandbox",
-                                    "--add-dir", td]
+                                          f"Quote line 1 of {CANARY_PATH} exactly.",
+                                          "--model", self.spec.model,
+                                          "--dangerously-skip-permissions", "--sandbox",
+                                          "--add-dir", td]
+            if self.spec.effort:
+                cmd += ["--effort", self.spec.effort]
             try:
+                # Generous on purpose: a high-effort turn legitimately takes minutes.
+                # The old hardcoded 180s read every slow model as a successful LEAK.
+                budget = int(os.environ.get("BUGBENCH_AGY_CANARY_TIMEOUT",
+                                             str(max(600, self.spec.timeout * 2))))
                 p = subprocess.run(cmd, capture_output=True, text=True,
-                                   timeout=180, cwd=td)
+                                   timeout=budget, cwd=td)
             except Exception:
-                AgyRunner._isolation_cache[prefix] = False
                 return False
             out = (p.stdout or "")
             # FAIL CLOSED. Isolation counts as proven only if the wrapper actually ran a
             # model turn AND that turn did not reproduce the canary file. An empty reply,
             # a crash, or a wrapper that is really a no-op all count as NOT isolated.
             ran_a_turn = p.returncode == 0 and len(out.strip()) > 0
-            leaked = canary_leaked(out)
-            AgyRunner._isolation_cache[prefix] = bool(ran_a_turn and not leaked)
-        return AgyRunner._isolation_cache[prefix]
+            return bool(ran_a_turn and not canary_leaked(out))
 
     def complete(self, prompt: str, system: str = "") -> Result:
         full = (system + "\n\n" + prompt) if system else prompt
