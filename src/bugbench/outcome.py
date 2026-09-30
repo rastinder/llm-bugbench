@@ -65,6 +65,9 @@ _NO_RETRY = (
     (re.compile(r"invalid model (selection|name)", re.I), "bad_request"),
     (re.compile(r"model not found", re.I), "not_found"),
     (re.compile(r"NotFoundError", re.I), "not_found"),
+    (re.compile(r"RESOURCE_EXHAUSTED|quota reached|exceeded your current quota",
+                re.I), "quota_exhausted"),
+    (re.compile(r"upgrade your subscription", re.I), "quota_exhausted"),
 )
 
 _POLICY_BLOCKED = re.compile(

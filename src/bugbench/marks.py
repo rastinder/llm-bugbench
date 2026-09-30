@@ -24,8 +24,11 @@ FIXED_THRESHOLD = 0.75
 EQUIV_FIX_THRESHOLD = 0.90
 UNTOUCHED_THRESHOLD = 0.97
 
-#: a model must have scored at least this many of the 20 panel tasks to be ranked at all
-MIN_COVERAGE = 15
+#: a model must have scored at least this share of the panel to be ranked at all.
+#: Relative, not absolute: a fixed 15-of-20 floor is nonsense on a smaller panel (an
+#: 8/8 model was being reported as "insufficient coverage").
+MIN_COVERAGE_RATIO = 0.75
+DEFAULT_MIN_COVERAGE = 15
 
 
 def _norm(s: str) -> str:
@@ -203,11 +206,29 @@ def select_board_models(models, allow: list[str] | None) -> set[str]:
             if m in allow or any(m.startswith(p) for p in BOARD_PREFIXES)}
 
 
+def latest_per_task(rows: list[dict]) -> list[dict]:
+    """Keep only the most recent row for each (model, task_id).
+
+    A task has ONE current verdict. Without this, a lane that failed 20 times for a root
+    cause that has since been fixed keeps carrying those dead rows forever, and its
+    availability reads as 29% when it just answered 8/8 on the current sweep. Re-running a
+    model after a fix must supersede the failure, not sit next to it.
+    """
+    best: dict[tuple, dict] = {}
+    for r in rows:
+        k = (r.get("model"), r.get("task_id"))
+        cur = best.get(k)
+        if cur is None or int(r.get("ts") or 0) >= int(cur.get("ts") or 0):
+            best[k] = r
+    return list(best.values())
+
+
 def decision_board(rows: list[dict], tasks: dict,
                    panel: int = 20,
-                   min_coverage: int = MIN_COVERAGE,
+                   min_coverage: int | None = None,
                    only: set[str] | None = None,
-                   show_exhausted: bool = False) -> tuple[list[dict], list[str]]:
+                   show_exhausted: bool = False,
+                   latest_only: bool = True) -> tuple[list[dict], list[str]]:
     """The model-selection board. Returns `(entries, quarantined_models)`.
 
     Deliberately NOT a pairwise "tasks both models completed" comparison: that breaks
@@ -221,6 +242,13 @@ def decision_board(rows: list[dict], tasks: dict,
     a competitor. Pass `show_exhausted=True` to bring them back for diagnosis.
     """
     from .outcome import outcome_state, classify_error
+
+    if latest_only:
+        rows = latest_per_task(rows)
+
+    if min_coverage is None:
+        min_coverage = min(DEFAULT_MIN_COVERAGE,
+                           max(1, -(-int(round(panel * MIN_COVERAGE_RATIO)) // 1)))
 
     trusted, quarantined = clean_rows(rows, tasks)
     tainted_models = sorted({r["model"] for r in quarantined})
@@ -257,7 +285,7 @@ def decision_board(rows: list[dict], tasks: dict,
         n_done, n_try = a["completed"], a["attempted"]
         cap = round(sum(a["comb"]) / len(a["comb"]), 1) if a["comb"] else None
         avail = round(100.0 * n_done / n_try, 1) if n_try else 0.0
-        cov = round(100.0 * n_done / panel, 1) if panel else 0.0
+        cov = min(100.0, round(100.0 * n_done / panel, 1)) if panel else 0.0
         u = utility(cap, n_done, n_try) if cap is not None else 0.0
 
         if n_done == 0:

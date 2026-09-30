@@ -249,3 +249,50 @@ def test_patch_similarity_excluded_from_rank_score():
     assert out["rank_score"] == pytest.approx(1.0)           # judge says correct
     assert out["total"] == pytest.approx(1.0)                # recall adds nothing on top
     assert "patch_similarity" not in out["rank_weights"]      # and is not a rank weight
+
+
+def test_min_coverage_scales_with_the_panel():
+    """A fixed 15-of-20 floor reported an 8/8 model as 'insufficient coverage'."""
+    from bugbench.marks import decision_board
+    ids = [f"B{i:04d}" for i in range(1, 9)]
+    tasks = _tasks(ids)
+    rows = [_mkrow("agy-x", t, 0.8) for t in ids]      # 8/8 on an 8-task panel
+    board, _ = decision_board(rows, tasks, panel=8)
+    e = board[0]
+    assert e["status"] == "ok", e["reason"]
+    assert e["ranking_eligible"] is True
+    assert e["coverage_pct"] == 100.0
+
+
+def test_coverage_is_capped_at_100_percent():
+    """A model with more rows than the panel must not print 'cov 250%'."""
+    from bugbench.marks import decision_board
+    ids = [f"B{i:04d}" for i in range(1, 21)]
+    tasks = _tasks(ids)
+    rows = [_mkrow("agy-x", t, 0.8) for t in ids]      # 20 rows against panel=8
+    board, _ = decision_board(rows, tasks, panel=8)
+    assert board[0]["coverage_pct"] == 100.0
+
+
+def test_a_later_success_supersedes_an_earlier_failure():
+    """A lane re-run after a fix must not keep carrying its old dead rows.
+
+    This is what made claude-opus read 29% availability while answering 8/8.
+    """
+    from bugbench.marks import latest_per_task
+    old = _mkrow("m", "B0001", 0.0, err="ModelError: HTTP 400: invalid model name")
+    old["ts"] = 1000
+    new = _mkrow("m", "B0001", 0.8)
+    new["ts"] = 2000
+    kept = latest_per_task([old, new])
+    assert len(kept) == 1 and kept[0]["ts"] == 2000
+    # and a later FAILURE supersedes an earlier success (a regression is real data)
+    newer_fail = _mkrow("m", "B0001", 0.0, err="ModelError: HTTP 429: rate")
+    newer_fail["ts"] = 3000
+    assert latest_per_task([old, new, newer_fail])[0]["ts"] == 3000
+
+
+def test_quota_exhaustion_is_classified_and_not_retryable():
+    from bugbench.outcome import classify_error
+    c = classify_error("exit 3: Individual quota reached. Resets in 2h47m57s.")
+    assert c is not None and c.kind == "quota_exhausted" and c.retryable is False

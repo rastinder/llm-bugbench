@@ -128,20 +128,29 @@ def cmd_run(args) -> int:
 
 def cmd_board(args) -> int:
     """Model-selection board: utility = capability x availability, taint excluded."""
-    from bugbench.marks import (decision_board, format_decision_board, MIN_COVERAGE,
+    from bugbench.marks import (decision_board, format_decision_board,
+                                 MIN_COVERAGE_RATIO, DEFAULT_MIN_COVERAGE,
                                  select_board_models, BOARD_PREFIXES, BOARD_MODELS)
     from bugbench.models import load_tasks as _lt
     rows = load_results(args.results)
     if not rows:
         print("no results yet", file=sys.stderr)
         return 2
+    if args.since:
+        # Measure one sweep only. Re-running a lane after fixing a root cause leaves the
+        # old dead rows in the file; without this, availability mixes a fixed past with
+        # the present and reads as 29% for a model that just answered 8/8.
+        rows = [r for r in rows if int(r.get("ts") or 0) >= args.since]
+        print(f"(only rows since {args.since}: {len(rows)} of "
+              f"{len(load_results(args.results))})\n")
     tasks = {t.task_id: t for t in _lt(args.data)}
     panel = args.panel
     only = None
     if not args.all_models:
         only = select_board_models({r["model"] for r in rows}, args.model or [])
     board, quarantined = decision_board(rows, tasks, panel=panel, only=only,
-                                        show_exhausted=args.show_exhausted)
+                                        show_exhausted=args.show_exhausted,
+                                        latest_only=not args.all_attempts)
     if args.json:
         print(json.dumps({"board": board, "quarantined": quarantined}, indent=2))
         return 0
@@ -162,7 +171,8 @@ def cmd_board(args) -> int:
             print(f"  separated from {len(rivals)} of {len(ok)-1} rivals by 95% CI")
     else:
         print("No model met the ranking bar "
-              f"(needs >= {MIN_COVERAGE}/{panel} completed). See the status column.")
+              f"(needs >= {min(DEFAULT_MIN_COVERAGE, max(1, round(panel * MIN_COVERAGE_RATIO)))}"
+              f"/{panel} completed). See the status column.")
     dead = [e for e in board if e["status"] == "unavailable"]
     if dead:
         retry = [e for e in dead if "retryable" in (e["reason"] or "")]
@@ -292,6 +302,10 @@ def main(argv=None) -> int:
                    help="add a model to the allowlist (repeatable)")
     b.add_argument("--show-exhausted", action="store_true",
                    help="also list models that never returned a usable answer")
+    b.add_argument("--since", type=int, default=0,
+                   help="only consider rows with ts >= this epoch (measure one sweep)")
+    b.add_argument("--all-attempts", action="store_true",
+                   help="keep superseded attempts instead of the latest per task")
     b.set_defaults(func=cmd_board)
 
     rep = sub.add_parser("report", help="leaderboard")
