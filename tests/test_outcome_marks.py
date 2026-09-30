@@ -141,13 +141,39 @@ def test_dead_endpoint_is_not_a_zero_percent_model():
     tasks = _tasks(ids)
     dead = [_mkrow("dead-endpoint", t, 0.0, err="ModelError: HTTP 400: invalid model name")
             for t in ids]
-    board, excluded = decision_board(dead, tasks)
+    board, excluded = decision_board(dead, tasks, show_exhausted=True)
     entry = board[0]
     assert entry["model"] == "dead-endpoint"
     assert entry["availability_pct"] == 0.0
     assert entry["ranking_eligible"] is False
     assert entry["status"] == "unavailable"      # NOT a capability score of 0
     assert entry["utility"] == 0.0
+
+
+def test_exhausted_models_are_omitted_from_the_board_by_default():
+    """An exhausted endpoint is not a competitor and must not be padded out as a 0% row."""
+    from bugbench.marks import decision_board
+    ids = [f"B{i:04d}" for i in range(1, 21)]
+    tasks = _tasks(ids)
+    good = [_mkrow("openrouter-space-bunny-alpha", t, 0.7) for t in ids]
+    dead = [_mkrow("agy-dead-thing", t, 0.0, err="ModelError: HTTP 400: bad model")
+            for t in ids]
+    board, _ = decision_board(good + dead, tasks)
+    assert [e["model"] for e in board] == ["openrouter-space-bunny-alpha"]
+    # ...and it comes back for diagnosis on request
+    board2, _ = decision_board(good + dead, tasks, show_exhausted=True)
+    assert "agy-dead-thing" in {e["model"] for e in board2}
+
+
+def test_board_allowlist_is_spacebunny_plus_agy_only():
+    from bugbench.marks import select_board_models
+    models = {"openrouter-space-bunny-alpha", "agy-claude-opus-4.6-thinking",
+              "glm-5.2", "kilo-nemotron-3-super", "openrouter-gemma-4-31b-it"}
+    assert select_board_models(models, []) == {
+        "openrouter-space-bunny-alpha", "agy-claude-opus-4.6-thinking"}
+    assert select_board_models(models, ["glm-5.2"]) == {
+        "openrouter-space-bunny-alpha", "agy-claude-opus-4.6-thinking", "glm-5.2"}
+    assert select_board_models(models, None) == models   # --all-models
 
 
 def test_coverage_below_threshold_is_not_ranked():

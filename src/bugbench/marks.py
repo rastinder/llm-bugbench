@@ -181,20 +181,52 @@ def _median(xs):
     return v[m] if len(v) % 2 else int(round((v[m - 1] + v[m]) / 2))
 
 
+#: The only lanes the operator actually wants compared. Everything else in the results
+#: file is noise for this decision: dead aliases, other vendors' endpoints, and older
+#: runs. Kept as an explicit list so adding a model to the benchmark does not silently
+#: add it to the board.
+BOARD_MODELS = ("openrouter-space-bunny-alpha",)
+BOARD_PREFIXES = ("agy-",)
+
+
+def board_filter(extra: list[str] | None = None) -> list[str]:
+    """Exact-name allowlist: the pinned models plus any caller-supplied extras."""
+    return list(dict.fromkeys(list(BOARD_MODELS) + list(extra or [])))
+
+
+def select_board_models(models, allow: list[str] | None) -> set[str]:
+    """Restrict a set of model names to the board allowlist. `allow=None` means no filter."""
+    if allow is None:
+        return set(models)
+    allow = set(board_filter(allow))
+    return {m for m in models
+            if m in allow or any(m.startswith(p) for p in BOARD_PREFIXES)}
+
+
 def decision_board(rows: list[dict], tasks: dict,
                    panel: int = 20,
-                   min_coverage: int = MIN_COVERAGE) -> tuple[list[dict], list[str]]:
+                   min_coverage: int = MIN_COVERAGE,
+                   only: set[str] | None = None,
+                   show_exhausted: bool = False) -> tuple[list[dict], list[str]]:
     """The model-selection board. Returns `(entries, quarantined_models)`.
 
     Deliberately NOT a pairwise "tasks both models completed" comparison: that breaks
     transitivity (A>B, B>C, C>A) and produces a board nobody can read. Instead every model
     is scored on its own completed tasks, and its coverage/availability are reported
     beside it, so the two dimensions never get silently mixed.
+
+    `only` restricts the board to the models the operator cares about. Models that are
+    EXHAUSTED (never returned a usable answer, or below the coverage floor) are omitted
+    entirely by default rather than padded out as 0% rows -- an exhausted endpoint is not
+    a competitor. Pass `show_exhausted=True` to bring them back for diagnosis.
     """
     from .outcome import outcome_state, classify_error
 
     trusted, quarantined = clean_rows(rows, tasks)
     tainted_models = sorted({r["model"] for r in quarantined})
+    if only is not None:
+        trusted = [r for r in trusted if r["model"] in only]
+        tainted_models = [m for m in tainted_models if m in only]
 
     per: dict[str, dict] = defaultdict(
         lambda: {"attempted": 0, "completed": 0, "comb": [], "found": 0, "fixed": 0,
@@ -274,6 +306,11 @@ def decision_board(rows: list[dict], tasks: dict,
 
     out.sort(key=lambda e: (e["ranking_eligible"], e["utility"], e["capability"] or 0),
              reverse=True)
+    if not show_exhausted:
+        # drop exhausted lanes entirely: an endpoint that never answered, or that could
+        # not cover enough of the panel, is not a competitor and must not appear as a
+        # 0% row the reader has to mentally discount.
+        out = [e for e in out if e["status"] != "unavailable"]
     return out, tainted_models
 
 

@@ -130,6 +130,21 @@ CANARY_PATH = os.environ.get(
     str(Path.home() / "zen-proxy/zen_proxy.mjs"))
 
 
+def canary_leaked(out: str) -> bool:
+    """Did this reply reproduce the canary file's real CONTENT?
+
+    The marker is the file's content, never its path. Matching the path string produced
+    a false positive that blocked the whole agentic lane: a correctly isolated model
+    answers "I cannot read <canary path>", and merely SAYING the path was scored as a
+    successful leak.
+    """
+    low = (out or "").lower()
+    return ("#!" in (out or "")
+            or "zen-proxy v2" in low        # line 2 of the real file
+            or "anthropic-messages in" in low
+            or "hy4 preview" in low)
+
+
 class AgyRunner:
     """Antigravity CLI (`agy`) runner -- an agentic lane with tool use.
 
@@ -154,9 +169,10 @@ class AgyRunner:
             AgyRunner._isolation_cache = {}
         if prefix in AgyRunner._isolation_cache:
             return AgyRunner._isolation_cache[prefix]
+        import shlex
         import tempfile as _tf
         with _tf.TemporaryDirectory(prefix="bugbench-agy-probe-") as td:
-            cmd = prefix.split() + [self.bin, "-p",
+            cmd = shlex.split(prefix) + [self.bin, "-p",
                                     f"Quote line 1 of {CANARY_PATH} exactly.",
                                     "--model", self.spec.model,
                                     "--dangerously-skip-permissions", "--sandbox",
@@ -172,7 +188,7 @@ class AgyRunner:
             # model turn AND that turn did not reproduce the canary file. An empty reply,
             # a crash, or a wrapper that is really a no-op all count as NOT isolated.
             ran_a_turn = p.returncode == 0 and len(out.strip()) > 0
-            leaked = "#!" in out or "shebang" in out.lower() or "zen-proxy" in out
+            leaked = canary_leaked(out)
             AgyRunner._isolation_cache[prefix] = bool(ran_a_turn and not leaked)
         return AgyRunner._isolation_cache[prefix]
 
@@ -210,17 +226,31 @@ class AgyRunner:
         # own zen-proxy/ and llm-scout/ projects) and copied the answer out of the repo.
         # That is not a capability score.
         # So: a throwaway empty working directory, plus --sandbox.
+        import shlex
         import tempfile
         with tempfile.TemporaryDirectory(prefix="bugbench-agy-") as td:
-            cmd = prefix.split() + [self.bin, "-p", full, "--model", self.spec.model,
-                                    "--dangerously-skip-permissions", "--sandbox",
-                                    "--add-dir", td]
-            if self.spec.effort:
-                cmd += ["--effort", self.spec.effort]
+            # shlex, not str.split: a wrapper path containing spaces was previously
+            # shredded into separate argv entries and the lane failed to start.
+            base = shlex.split(prefix) + [self.bin, "-p", full, "--model", self.spec.model,
+                                          "--dangerously-skip-permissions", "--sandbox",
+                                          "--add-dir", td]
             t0 = time.time()
+
+            def _run(extra):
+                return subprocess.run(base + extra, capture_output=True, text=True,
+                                      timeout=self.spec.timeout, cwd=td)
+
             try:
-                p = subprocess.run(cmd, capture_output=True, text=True,
-                                   timeout=self.spec.timeout, cwd=td)
+                if self.spec.effort:
+                    p = _run(["--effort", self.spec.effort])
+                    # A model can be renamed/reconfigured upstream and start rejecting an
+                    # effort level it used to accept, which silently costs a whole lane
+                    # (`invalid model selection`). Drop the flag and retry once rather
+                    # than writing off every task.
+                    if p.returncode != 0 and "effort is not supported" in (p.stderr or ""):
+                        p = _run([])
+                else:
+                    p = _run([])
             except subprocess.TimeoutExpired:
                 return Result(text="", latency_ms=int((time.time() - t0) * 1000),
                               error=f"timeout after {self.spec.timeout}s")
@@ -260,9 +290,10 @@ class OpenCodeRunner:
             AgyRunner._isolation_cache = {}
         if prefix in AgyRunner._isolation_cache:
             return AgyRunner._isolation_cache[prefix]
+        import shlex
         import tempfile as _tf
         with _tf.TemporaryDirectory(prefix="bugbench-agy-probe-") as td:
-            cmd = prefix.split() + [self.bin, "-p",
+            cmd = shlex.split(prefix) + [self.bin, "-p",
                                     f"Quote line 1 of {CANARY_PATH} exactly.",
                                     "--model", self.spec.model,
                                     "--dangerously-skip-permissions", "--sandbox",
@@ -278,7 +309,7 @@ class OpenCodeRunner:
             # model turn AND that turn did not reproduce the canary file. An empty reply,
             # a crash, or a wrapper that is really a no-op all count as NOT isolated.
             ran_a_turn = p.returncode == 0 and len(out.strip()) > 0
-            leaked = "#!" in out or "shebang" in out.lower() or "zen-proxy" in out
+            leaked = canary_leaked(out)
             AgyRunner._isolation_cache[prefix] = bool(ran_a_turn and not leaked)
         return AgyRunner._isolation_cache[prefix]
 
@@ -360,13 +391,26 @@ FREE = [
     ("openrouter-space-bunny-alpha", "stealth/space-bunny-alpha"),
 ]
 
-# Antigravity CLI lanes (`agy`), verified live 2026-09-29 via `agy models`.
+# Antigravity CLI lanes (`agy`), verified live 2026-09-29 via `agy models` (14 available).
+# `effort` is EMPTY for the Claude lanes on purpose: they are registered as
+# "(Thinking)" variants and reject `--effort` outright
+# (`--effort is not supported for model "claude-opus-4-6-thinking"`), which was the
+# cause of 40 `invalid model selection` failures. The Gemini/gpt-oss names already
+# encode their own effort level.
 AGY = [
     ("agy-gemini-3.8-flash-high", "gemini-3.8-flash-high", "high"),
+    ("agy-gemini-3.8-flash-medium", "gemini-3.8-flash-medium", "medium"),
+    ("agy-gemini-3.8-flash-low", "gemini-3.8-flash-low", "low"),
     ("agy-gemini-3.7-flash-high", "gemini-3.7-flash-high", "high"),
+    ("agy-gemini-3.7-flash-medium", "gemini-3.7-flash-medium", "medium"),
+    ("agy-gemini-3.7-flash-low", "gemini-3.7-flash-low", "low"),
+    ("agy-gemini-3.6-flash-high", "gemini-3.6-flash-high", "high"),
+    ("agy-gemini-3.6-flash-medium", "gemini-3.6-flash-medium", "medium"),
+    ("agy-gemini-3.6-flash-low", "gemini-3.6-flash-low", "low"),
     ("agy-gemini-3.1-pro-high", "gemini-3.1-pro-high", "high"),
-    ("agy-claude-opus-4.6-thinking", "claude-opus-4-6-thinking", "high"),
-    ("agy-claude-sonnet-4.6", "claude-sonnet-4-6", "high"),
+    ("agy-gemini-3.1-pro-low", "gemini-3.1-pro-low", "low"),
+    ("agy-claude-opus-4.6-thinking", "claude-opus-4-6-thinking", ""),
+    ("agy-claude-sonnet-4.6", "claude-sonnet-4-6", ""),
     ("agy-gpt-oss-120b-medium", "gpt-oss-120b-medium", "medium"),
 ]
 

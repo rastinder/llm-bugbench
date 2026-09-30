@@ -128,7 +128,8 @@ def cmd_run(args) -> int:
 
 def cmd_board(args) -> int:
     """Model-selection board: utility = capability x availability, taint excluded."""
-    from bugbench.marks import decision_board, format_decision_board, MIN_COVERAGE
+    from bugbench.marks import (decision_board, format_decision_board, MIN_COVERAGE,
+                                 select_board_models, BOARD_PREFIXES, BOARD_MODELS)
     from bugbench.models import load_tasks as _lt
     rows = load_results(args.results)
     if not rows:
@@ -136,7 +137,11 @@ def cmd_board(args) -> int:
         return 2
     tasks = {t.task_id: t for t in _lt(args.data)}
     panel = args.panel
-    board, quarantined = decision_board(rows, tasks, panel=panel)
+    only = None
+    if not args.all_models:
+        only = select_board_models({r["model"] for r in rows}, args.model or [])
+    board, quarantined = decision_board(rows, tasks, panel=panel, only=only,
+                                        show_exhausted=args.show_exhausted)
     if args.json:
         print(json.dumps({"board": board, "quarantined": quarantined}, indent=2))
         return 0
@@ -163,6 +168,9 @@ def cmd_board(args) -> int:
         retry = [e for e in dead if "retryable" in (e["reason"] or "")]
         print(f"\n{len(dead)} model(s) never returned an answer "
               f"({len(retry)} worth retrying). These are NOT 0% models.")
+    if not args.all_models:
+        print(f"\n(filtered to: {', '.join(BOARD_MODELS)}, {BOARD_PREFIXES}*  "
+              f"--use --all-models to see everything)")
     return 0
 
 
@@ -278,6 +286,12 @@ def main(argv=None) -> int:
     b.add_argument("--panel", type=int, default=20,
                    help="size of the fixed task panel every model is measured on")
     b.add_argument("--json", action="store_true")
+    b.add_argument("--all-models", action="store_true",
+                   help="ignore the spacebunny+agy allowlist and show every lane")
+    b.add_argument("--model", action="append", default=None,
+                   help="add a model to the allowlist (repeatable)")
+    b.add_argument("--show-exhausted", action="store_true",
+                   help="also list models that never returned a usable answer")
     b.set_defaults(func=cmd_board)
 
     rep = sub.add_parser("report", help="leaderboard")
