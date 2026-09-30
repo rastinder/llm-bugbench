@@ -1,0 +1,422 @@
+"""Model runners: one uniform interface over every endpoint this machine has.
+
+`kind`:
+  openai   -- any OpenAI-compatible /chat/completions endpoint
+  opencode -- the opencode CLI (its own agent harness, tool-capable)
+"""
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+from pathlib import Path
+import threading
+import time
+import urllib.error
+import urllib.request
+from dataclasses import dataclass, field
+from typing import Any
+
+DEFAULT_TIMEOUT = 180
+
+
+class ModelError(RuntimeError):
+    pass
+
+
+@dataclass
+class ModelSpec:
+    name: str
+    base_url: str = ""
+    api_key: str = ""
+    model: str = ""
+    kind: str = "openai"
+    temperature: float = 0.0
+    max_tokens: int = 1400
+    timeout: int = DEFAULT_TIMEOUT
+    extra_headers: dict = field(default_factory=dict)
+    effort: str = ""
+    notes: str = ""
+
+
+@dataclass
+class Result:
+    text: str
+    latency_ms: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    error: str = ""
+    text_source: str = "content"
+    reasoning_chars: int = 0
+
+    @property
+    def ok(self) -> bool:
+        return not self.error
+
+
+class OpenAIChatRunner:
+    def __init__(self, spec: ModelSpec):
+        self.spec = spec
+
+    def complete(self, prompt: str, system: str = "") -> Result:
+        return self.complete_messages(
+            [{"role": "system", "content": system},
+             {"role": "user", "content": prompt}] if system
+            else [{"role": "user", "content": prompt}])
+
+    def complete_messages(self, messages: list[dict]) -> Result:
+        url = self.spec.base_url.rstrip("/")
+        if not url.endswith("/chat/completions"):
+            url = url + "/chat/completions"
+        body = {
+            "model": self.spec.model or self.spec.name,
+            "messages": messages,
+            "temperature": self.spec.temperature,
+            "max_tokens": self.spec.max_tokens,
+            "stream": False,
+        }
+        data = json.dumps(body).encode()
+        req = urllib.request.Request(url, data=data, method="POST")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("User-Agent", DEFAULT_UA)
+        req.add_header("Accept", "application/json")
+        if self.spec.api_key:
+            req.add_header("Authorization", f"Bearer {self.spec.api_key}")
+        for k, v in self.spec.extra_headers.items():
+            req.add_header(k, v)
+        t0 = time.time()
+        try:
+            with urllib.request.urlopen(req, timeout=self.spec.timeout) as resp:
+                raw = resp.read().decode("utf-8", "replace")
+                status = resp.status
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", "replace")[:200]
+            raise ModelError(f"HTTP {e.code}: {body}") from e
+        except Exception as e:
+            raise ModelError(f"{type(e).__name__}: {e}") from e
+        dt = int((time.time() - t0) * 1000)
+        if status != 200:
+            raise ModelError(f"HTTP {status}")
+        try:
+            d = json.loads(raw)
+        except json.JSONDecodeError as e:
+            raise ModelError(f"non-JSON HTTP {status}: {e}") from e
+        choices = d.get("choices") or []
+        if not choices:
+            raise ModelError(f"no choices in response: {raw[:200]}")
+        msg = choices[0].get("message") or {}
+        text = msg.get("content")
+        if text is None:
+            text = choices[0].get("text") or ""
+        # reasoning models (gpt-oss, space-bunny-alpha, ...) can put their whole answer
+        # in `reasoning_content` and return an EMPTY `content`. Dropping it made those
+        # models look like they produced nothing at all.
+        reasoning = msg.get("reasoning_content") or msg.get("reasoning") or ""
+        if not (text or "").strip() and (reasoning or "").strip():
+            text = reasoning
+            out_of = "reasoning_content"
+        else:
+            out_of = "content"
+        u = d.get("usage") or {}
+        return Result(text=text, latency_ms=dt, text_source=out_of,
+                      reasoning_chars=len(reasoning or ""),
+                      prompt_tokens=int(u.get("prompt_tokens", 0) or 0),
+                      completion_tokens=int(u.get("completion_tokens", 0) or 0))
+
+
+class AgyRunner:
+    """Antigravity CLI (`agy`) runner -- an agentic lane with tool use.
+
+    Distinct from the plain chat lanes: the model can read files and run commands, so
+    prompts that hand it a repo would behave very differently from the snippet-only
+    benchmark. Registered as kind="agy".
+    """
+
+    def __init__(self, spec: ModelSpec):
+        self.spec = spec
+        self.bin = shutil.which("agy") or str(Path.home() / ".local/bin/agy")
+
+    def complete(self, prompt: str, system: str = "") -> Result:
+        full = (system + "\n\n" + prompt) if system else prompt
+        # SANDBOX IS MANDATORY, NOT OPTIONAL.
+        # The benchmark hands the agent a snippet and asks it to fix it. Run with normal
+        # permissions from the project directory, `agy` could simply grep the machine for
+        # the real file and paste the fixed version. Measured on the first agy run:
+        # 8 of 11 answers were BYTE-IDENTICAL to the historical fix, because the agent
+        # read /home/ras/zen-proxy/zen_proxy.mjs, /home/ras/llm-scout/scout_server.py and
+        # friends and copied the answer out of the repo. That is not a capability score.
+        # So: a throwaway empty working directory, plus --sandbox.
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix="bugbench-agy-") as td:
+            cmd = [self.bin, "-p", full, "--model", self.spec.model,
+                   "--dangerously-skip-permissions", "--sandbox",
+                   "--add-dir", td]
+            if self.spec.effort:
+                cmd += ["--effort", self.spec.effort]
+            t0 = time.time()
+            try:
+                p = subprocess.run(cmd, capture_output=True, text=True,
+                                   timeout=self.spec.timeout, cwd=td)
+            except subprocess.TimeoutExpired:
+                return Result(text="", latency_ms=int((time.time() - t0) * 1000),
+                              error=f"timeout after {self.spec.timeout}s")
+        dt = int((time.time() - t0) * 1000)
+        if p.returncode != 0:
+            return Result(text="", latency_ms=dt,
+                          error=f"exit {p.returncode}: {(p.stderr or '')[:200]}")
+        return Result(text=(p.stdout or "").strip(), latency_ms=dt)
+
+    def complete_messages(self, messages: list[dict]) -> Result:
+        system = ""
+        user = []
+        for m in messages:
+            if m["role"] == "system":
+                system = m["content"]
+            else:
+                user.append(m["content"])
+        return self.complete("\n\n".join(user), system)
+
+
+class OpenCodeRunner:
+    """Runs `opencode run` as a subprocess (agentic, tool-capable model lane)."""
+
+    def __init__(self, spec: ModelSpec):
+        self.spec = spec
+        self.bin = shutil.which("opencode") or "opencode"
+
+    def complete(self, prompt: str, system: str = "") -> Result:
+        full = (system + "\n\n" + prompt) if system else prompt
+        cmd = [self.bin, "run", "--dir", os.environ.get("BUGBENCH_DIR", "/tmp"),
+               "--model", self.spec.model, full]
+        t0 = time.time()
+        try:
+            p = subprocess.run(cmd, capture_output=True, text=True,
+                               timeout=self.spec.timeout)
+        except subprocess.TimeoutExpired:
+            return Result(text="", latency_ms=int((time.time() - t0) * 1000),
+                          error=f"timeout after {self.spec.timeout}s")
+        dt = int((time.time() - t0) * 1000)
+        if p.returncode != 0:
+            return Result(text="", latency_ms=dt,
+                          error=f"exit {p.returncode}: {(p.stderr or '')[:200]}")
+        return Result(text=p.stdout or "", latency_ms=dt)
+
+
+def runner_for(spec: ModelSpec):
+    if spec.kind == "agy":
+        return AgyRunner(spec)
+    if spec.kind == "opencode":
+        return OpenCodeRunner(spec)
+    return OpenAIChatRunner(spec)
+
+
+# ---------------------------------------------------------------- registry
+DEFAULT_UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36")
+
+LITELLM_BASE = "https://aitshirts.in/litellm/v1"
+LITELLM_KEY = os.environ.get("LITELLM_KEY", "sk-litellm-vps-2026")
+
+# Only models verified LIVE against /v1/models + a real completion are registered
+# (2026-09-29). The pool changes daily: groq-llama-3.3-70b-verse 404s, nvidia-llama-3.1
+# 410s, hf-llama-3.1-8b 402s, the Cloudflare-hosted models exhaust a 10k-neuron/day quota.
+FREE = [
+    ("kilo-nemotron-3-ultra", "nvidia/nemotron-3-ultra-550b-a55b:free"),
+    ("kilo-nemotron-3-super", "nvidia/nemotron-3-super-120b-a12b:free"),
+    ("kilo-inkling", "thinkingmachines/inkling:free"),
+    ("kilo-step-3.7-flash", "stepfun/step-3.7-flash:free"),
+    ("openrouter-nex-n2-5-pro", "nex-agi/nex-n2.5-pro:free"),
+    ("openrouter-gemma-4-31b-it", "google/gemma-4-31b-it:free"),
+    ("openrouter-laguna-xs-2-1", "poolside/laguna-xs-2.1:free"),
+    ("openrouter-north-mini-code", "cohere/north-mini-code:free"),
+    ("openrouter-qwen3-8-27b", "qwen/qwen3.8-27b:free"),
+    ("openrouter-ling-3-0-flash-vl", "inclusionai/ling-3.0-flash-vl:free"),
+    ("openrouter-nex-n2-5-mini", "nex-agi/nex-n2.5-mini:free"),
+    ("openrouter-nemotron-3-5-lightning", "nvidia/nemotron-3.5-lightning:free"),
+    ("openrouter-nemotron-3-nano-omni", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
+    ("openrouter-gemma-4-26b", "google/gemma-4-26b-a4b-it:free"),
+    ("openrouter-lfm-2-5-2-6b", "liquid/lfm-2.5-2.6b:free"),
+    # alpha / experimental
+    ("openrouter-space-bunny-alpha", "stealth/space-bunny-alpha"),
+]
+
+# Antigravity CLI lanes (`agy`), verified live 2026-09-29 via `agy models`.
+AGY = [
+    ("agy-gemini-3.8-flash-high", "gemini-3.8-flash-high", "high"),
+    ("agy-gemini-3.7-flash-high", "gemini-3.7-flash-high", "high"),
+    ("agy-gemini-3.1-pro-high", "gemini-3.1-pro-high", "high"),
+    ("agy-claude-opus-4.6-thinking", "claude-opus-4-6-thinking", "high"),
+    ("agy-claude-sonnet-4.6", "claude-sonnet-4-6", "high"),
+    ("agy-gpt-oss-120b-medium", "gpt-oss-120b-medium", "medium"),
+]
+
+# GLM family (verified live 2026-09-29; the nvidia-* GLM 5.x entries are retired/410)
+GLM = [
+    ("glm-5.2", "openrouter-glm-5.2"),
+    ("glm-5.3-flash", "openrouter-glm-5.3-flash"),
+]
+
+REGISTRY: list[ModelSpec] = [
+    ModelSpec(name="local-mimo-9b", base_url="http://127.0.0.1:8083/v1",
+              api_key="local", model="mimo-v26-9b-mtp", max_tokens=2400,
+              timeout=600, notes="local llama-server; run with --workers 1"),
+    ModelSpec(name="qwen-3.8-27b", base_url=LITELLM_BASE, api_key=LITELLM_KEY,
+              model="openrouter-qwen-3.8-27b", max_tokens=2400,
+              notes="OpenRouter Qwen3.8 27B"),
+    ModelSpec(name="litellm-auto", base_url=LITELLM_BASE, api_key=LITELLM_KEY,
+              model="auto", max_tokens=2400, notes="smart failover collection"),
+    ModelSpec(name="codestral", base_url=LITELLM_BASE, api_key=LITELLM_KEY,
+              model="mistral-codestral-latest", max_tokens=2400,
+              notes="Mistral Codestral"),
+    ModelSpec(name="gpt-oss-20b-ollama", base_url=LITELLM_BASE, api_key=LITELLM_KEY,
+              model="ollama-gpt-oss-20b", max_tokens=2400,
+              notes="gpt-oss-20b via ollama upstream"),
+    ModelSpec(name="agnes-2.0-flash", base_url=LITELLM_BASE, api_key=LITELLM_KEY,
+              model="agnes-2.0-flash", max_tokens=2400, notes="fast small model"),
+] + [
+    ModelSpec(name=n, base_url=LITELLM_BASE, api_key=LITELLM_KEY, model=m,
+              max_tokens=2400, timeout=180, notes=f"GLM -- {m}")
+    for n, m in GLM
+] + [
+] + [
+    ModelSpec(name=n, kind="agy", model=m, effort=e, max_tokens=2400, timeout=300,
+              notes=f"Antigravity CLI -- {m}")
+    for n, m, e in AGY
+] + [
+    ModelSpec(name="copilot-gpt56", base_url="http://127.0.0.1:8789/v1",
+              api_key="sk-copilot-tool-layer", model="copilot-gpt", max_tokens=2400,
+              notes="M365 Copilot via local tool layer"),
+] + [
+    # OpenRouter free tier (:free). These are rate-limited, so run them with the
+    # throttle active and read the `errors` column -- a 429 is availability, not skill.
+    ModelSpec(name=n, base_url=LITELLM_BASE, api_key=LITELLM_KEY, model=n,
+              max_tokens=2400, timeout=120, notes=f"OpenRouter free -- {d}")
+    for n, d in FREE
+]
+
+
+def registry() -> list[dict]:
+    return [{"name": s.name, "kind": s.kind, "model": s.model,
+             "base_url": s.base_url, "notes": s.notes} for s in REGISTRY]
+
+
+def get(name: str) -> ModelSpec:
+    for s in REGISTRY:
+        if s.name == name:
+            return s
+    raise ModelError(f"unknown model {name!r}; known: {[s.name for s in REGISTRY]}")
+
+
+class Throttle:
+    """Process-wide rate gate + exponential backoff.
+
+    The LiteLLM pool sits behind Cloudflare, which answers HTTP 500 with error code 971
+    ("throttling your request speed") when concurrency is too high. Adding a judge doubles
+    the request count, so the runner must pace itself rather than record the throttle as a
+    model failure.
+    """
+
+    def __init__(self, min_interval: float = 0.35, max_backoff: float = 20.0):
+        self.min_interval = min_interval
+        self.max_backoff = max_backoff
+        self._lock = threading.Lock()
+        self._next = 0.0
+
+    def wait(self) -> None:
+        with self._lock:
+            now = time.monotonic()
+            if now < self._next:
+                delay = self._next - now
+            else:
+                delay = 0.0
+            self._next = max(now, self._next) + self.min_interval
+        if delay:
+            time.sleep(delay)
+
+    def penalise(self) -> float:
+        with self._lock:
+            self.min_interval = min(self.max_backoff, self.min_interval * 2)
+            return self.min_interval
+
+    def reward(self) -> None:
+        with self._lock:
+            self.min_interval = max(0.1, self.min_interval / 1.5)
+
+
+GLOBAL_THROTTLE = Throttle()
+THROTTLED_MARKERS = ("throttling your request speed", "rate limit", "429",
+                     "too many requests", "slow down")
+
+
+class FallbackRunner:
+    """Tries several endpoints until one returns usable content.
+
+    Needed because the pool is a live failover mix: some upstreams return HTTP 402/410/404
+    or an EMPTY completion (reasoning models that burn the whole budget). A single-shot
+    runner would silently record "no answer" as a model failure.
+    """
+
+    def __init__(self, specs: list[ModelSpec], min_chars: int = 1,
+                 throttle: Throttle | None = None):
+        self.specs = specs
+        self.min_chars = min_chars
+        self.throttle = throttle if throttle is not None else GLOBAL_THROTTLE
+        self.tried: list[str] = []
+
+    @staticmethod
+    def _label(spec) -> str:
+        if isinstance(spec, ModelSpec):
+            return spec.model or spec.name
+        inner = getattr(spec, "spec", None)
+        if isinstance(inner, ModelSpec):
+            return inner.model or inner.name
+        return getattr(spec, "name", None) or type(spec).__name__
+
+    def complete_messages(self, messages: list[dict]) -> Result:
+        self.tried = []
+        last: Result | None = None
+        for attempt in range(3):
+            for spec in self.specs:
+                self.tried.append(self._label(spec))
+                engine = (spec if hasattr(spec, "complete_messages")
+                          else OpenAIChatRunner(spec))
+                self.throttle.wait()
+                try:
+                    r = engine.complete_messages(messages)
+                except Exception as e:
+                    last = Result(text="", error=f"{type(e).__name__}: {e}")
+                    self.throttle.penalise()
+                    continue
+                if self._throttled(r):
+                    last = r
+                    self.throttle.penalise()
+                    continue
+                if r.ok and len((r.text or "").strip()) >= self.min_chars:
+                    self.throttle.reward()
+                    return r
+                last = r
+            if last is not None and self._throttled(last):
+                time.sleep(min(self.throttle.max_backoff,
+                               max(1.0, self.throttle.min_interval * 4)))
+        return last or Result(text="", error="no endpoints configured")
+
+    @staticmethod
+    def _throttled(r: Result) -> bool:
+        blob = f"{r.error or ''} {r.text or ''}".lower()
+        return any(m in blob for m in THROTTLED_MARKERS)
+
+
+def json_runner(models: list[str] | None = None,
+                min_chars: int = 2) -> FallbackRunner:
+    """A JSON-capable fallback chain, ordered by observed reliability on this box."""
+    order = models or ["openrouter-qwen-3.8-27b", "mistral-codestral-latest", "auto"]
+    specs = []
+    for m in order:
+        try:
+            s = get(m)
+        except ModelError:
+            s = ModelSpec(name="__lb__", base_url=LITELLM_BASE, api_key=LITELLM_KEY,
+                          model=m, max_tokens=600, timeout=120)
+        specs.append(s)
+    return FallbackRunner(specs, min_chars=min_chars)
