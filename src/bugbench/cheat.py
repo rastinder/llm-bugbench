@@ -112,15 +112,23 @@ def check_row(row: dict, task, judge_rationale: str = "",
     }
 
     # A byte-identical answer is only a memorisation signal if the model could NOT have
-    # simply read the answer off disk. For an agentic lane it almost always could.
+    # simply read the answer off disk. For an agentic lane it almost always could; for a
+    # plain HTTP chat lane it never can, so a match there is capability or memorisation
+    # and not a leak. Gating on real lane capability is what stops this from
+    # quarantining healthy API models.
+    from .runners import lane_has_filesystem
     fname = getattr(task, "file_name", "") or ""
     on_disk = source_file_on_disk(fname, roots)
+    leak_possible = bool(on_disk) and lane_has_filesystem(row.get("model", ""))
     signals["file_read_leak"] = {
-        "fired": bool(signals["verbatim_reproduction"]["fired"] and on_disk),
+        "fired": bool(signals["verbatim_reproduction"]["fired"] and leak_possible),
         "severity": "critical",
-        "detail": (f"answer is byte-identical to the historical fix AND the real file "
-                   f"is readable at {on_disk} -- an agentic lane can copy the answer "
-                   f"out of the repo instead of fixing anything"),
+        "detail": ((f"answer is byte-identical to the historical fix AND the real file "
+                    f"is readable at {on_disk} by a filesystem-capable lane -- it can "
+                    f"copy the answer out of the repo instead of fixing anything")
+                   if leak_possible else
+                   ("lane has no filesystem access, so a byte-identical answer is "
+                    "capability or memorisation, not a file-read leak")),
     }
 
     fired = [k for k, v in signals.items() if v["fired"]]
@@ -146,6 +154,13 @@ def screen(rows: list[dict], tasks: dict) -> dict:
     for row in rows:
         t = tasks.get(row.get("task_id"))
         if t is None:
+            continue
+        # A row that never produced a usable answer cannot have cheated: there is no
+        # answer to compare against anything. Screening it made every rate-limited or
+        # dead-endpoint task fire `degenerate_output`, which is why 370 of 432 rows were
+        # "flagged" -- an entirely signal-free number. Only completed rows are screened.
+        from .outcome import is_scored
+        if not is_scored(row):
             continue
         v = check_row(row, t)
         verdicts.append(v)

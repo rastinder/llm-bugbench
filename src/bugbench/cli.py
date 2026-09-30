@@ -85,6 +85,26 @@ def cmd_run(args) -> int:
         if not tasks:
             print("nothing to do")
             return 0
+    elif args.retry_failed:
+        # Re-attempt only the tasks that failed in a way retrying can actually fix
+        # (429 / 503 / timeout). A 400 "invalid model name" or a 401 will fail exactly
+        # the same way forever, and re-running those just burns quota and quota is what
+        # made the earlier top-up useless.
+        from bugbench.outcome import retryable_rows
+        mine = [r for r in (load_results(args.results) if os.path.exists(args.results) else [])
+                if r.get("model") == args.model]
+        retry_ids = {r.get("task_id") for r in retryable_rows(mine)}
+        if not retry_ids:
+            print("no retryable failures for this model "
+                  "(dead endpoints and policy blocks are not retried)")
+            return 0
+        before = len(tasks)
+        tasks = [t for t in tasks if t.task_id in retry_ids]
+        print(f"retry-failed: {len(retry_ids)} retryable of {before} in scope, "
+              f"running {len(tasks)}", flush=True)
+        if not tasks:
+            print("nothing to do")
+            return 0
     judge = (Judge(runner=json_runner(min_chars=10)) if not args.no_judge
              else Judge(spec=None))
     # persist incrementally: a timeout on a slow/rate-limited model used to throw away
@@ -104,6 +124,55 @@ def cmd_run(args) -> int:
               f"combined={r.get('combined', 0):.3f}"
               f"  {('ERR ' + (r.get('repair_error') or r.get('diagnose_error') or '')) if (r.get('repair_error') or r.get('diagnose_error')) else ''}")
     return 0
+
+
+def cmd_board(args) -> int:
+    """Model-selection board: utility = capability x availability, taint excluded."""
+    from bugbench.marks import decision_board, format_decision_board, MIN_COVERAGE
+    from bugbench.models import load_tasks as _lt
+    rows = load_results(args.results)
+    if not rows:
+        print("no results yet", file=sys.stderr)
+        return 2
+    tasks = {t.task_id: t for t in _lt(args.data)}
+    panel = args.panel
+    board, quarantined = decision_board(rows, tasks, panel=panel)
+    if args.json:
+        print(json.dumps({"board": board, "quarantined": quarantined}, indent=2))
+        return 0
+    print(format_decision_board(board, quarantined))
+    ok = [e for e in board if e["ranking_eligible"]]
+    print()
+    if ok:
+        best = ok[0]
+        print(f"BEST: {best['model']}  utility {best['utility']}/100 "
+              f"(capability {best['capability']} x availability {best['availability_pct']:.0f}%)")
+        rivals = [e for e in ok[1:]
+                  if e["ci95"] != "n/a" and best["ci95"] != "n/a"
+                  and _ci_overlap(best["ci95"], e["ci95"])]
+        if len(ok) > 1 and len(rivals) == len(ok) - 1:
+            print("  ...but its 95% CI overlaps every other ranked model -> "
+                  "this is a TIE, not a clear winner. Repeat runs before committing.")
+        elif len(ok) > 1:
+            print(f"  separated from {len(rivals)} of {len(ok)-1} rivals by 95% CI")
+    else:
+        print("No model met the ranking bar "
+              f"(needs >= {MIN_COVERAGE}/{panel} completed). See the status column.")
+    dead = [e for e in board if e["status"] == "unavailable"]
+    if dead:
+        retry = [e for e in dead if "retryable" in (e["reason"] or "")]
+        print(f"\n{len(dead)} model(s) never returned an answer "
+              f"({len(retry)} worth retrying). These are NOT 0% models.")
+    return 0
+
+
+def _ci_overlap(a: str, b: str) -> bool:
+    try:
+        alo, ahi = (float(x) for x in a.split("-"))
+        blo, bhi = (float(x) for x in b.split("-"))
+    except ValueError:
+        return False
+    return not (ahi < blo or bhi < alo)
 
 
 def cmd_report(args) -> int:
@@ -198,7 +267,18 @@ def main(argv=None) -> int:
     r.add_argument("--append", action="store_true")
     r.add_argument("--topup", action="store_true",
                    help="only run tasks this model has not attempted yet")
+    r.add_argument("--retry-failed", action="store_true",
+                   help="re-run only tasks that failed retryably (429/503/timeout); "
+                        "skips dead endpoints and policy blocks")
     r.set_defaults(func=cmd_run)
+
+    b = sub.add_parser("board", help="model-selection board (utility = capability x availability)")
+    b.add_argument("--results", default=RESULTS)
+    b.add_argument("--data", default=DATA)
+    b.add_argument("--panel", type=int, default=20,
+                   help="size of the fixed task panel every model is measured on")
+    b.add_argument("--json", action="store_true")
+    b.set_defaults(func=cmd_board)
 
     rep = sub.add_parser("report", help="leaderboard")
     rep.add_argument("--results", default=RESULTS)

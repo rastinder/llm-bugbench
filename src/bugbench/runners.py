@@ -300,7 +300,29 @@ class OpenCodeRunner:
         return Result(text=p.stdout or "", latency_ms=dt)
 
 
+#: lane kinds that can touch the host filesystem. A plain HTTP chat lane cannot, so a
+#: byte-identical answer from one is capability (or memorisation), never a file leak.
+FS_CAPABLE_KINDS = ("agy", "opencode", "cli")
+
+
+def lane_has_filesystem(model_name: str) -> bool:
+    """Can this model's lane read files off this host?
+
+    Used to gate the file-read-leak detector. Without this check the detector fired on
+    plain API models that had no filesystem access at all, and quarantined a healthy
+    model over a single byte-identical answer.
+
+    An UNREGISTERED lane name conservatively returns True: we cannot prove such a lane
+    lacks filesystem access, and absence of proof is not proof of safety.
+    """
+    try:
+        return get(model_name).kind in FS_CAPABLE_KINDS
+    except Exception:
+        return True
+
+
 def runner_for(spec: ModelSpec):
+
     if spec.kind == "agy":
         return AgyRunner(spec)
     if spec.kind == "opencode":

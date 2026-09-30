@@ -273,12 +273,15 @@ def score_repair(task: Any, candidate_text: str, judge_agreement: float,
     if is_unchanged(cand, getattr(task, "buggy", "")):
         return {
             "total": 0.0,
+            "rank_score": 0.0,
             "diff_similarity": 0.0,
+            "patch_similarity": 0.0,
             "patch_reproduction": 0.0,
             "judge_agreement": 0.0,
             "oracle_score": 0.0,
             "oracle": "none",
             "combined_weights": {"judge": 0.0, "note": "returned the buggy input unchanged"},
+            "rank_weights": {"judge": 0.0},
             "penalty": "unchanged_input",
         }
 
@@ -296,14 +299,25 @@ def score_repair(task: Any, candidate_text: str, judge_agreement: float,
     else:
         total = 0.5 * judge + 0.5 * sim
 
+    # `rank_score` is the correctness-only number: judge, plus the execution oracle when
+    # one exists. `patch_reproduction` is byte-similarity to the developer's historical
+    # fix, which measures recall/memorisation, NOT correctness -- the reference fix is
+    # retrievable in the private dataset, so a model that has memorised GitHub would
+    # otherwise collect a large correctness bonus for reproducing a known answer.
+    # It is still reported, as a diagnostic, but it no longer drives the ranking.
+    rank_score = (0.8 * judge + 0.2 * o) if has_oracle else judge
+
     return {
         "total": round(total, 4),
+        "rank_score": round(rank_score, 4),
+        "rank_weights": ({"judge": 0.8, "oracle": 0.2} if has_oracle else {"judge": 1.0}),
         "diff_similarity": sim,
+        "patch_similarity": sim,
         "patch_reproduction": sim,
         "judge_agreement": round(judge, 4),
         "oracle_score": round(o, 4),
         "oracle": "exec_diff" if has_oracle else "none",
-        "combined_weights": ({"judge": 0.5, "patch_reproduction": 0.3,
+        "combined_weights": ({"judge": 0.5, "patch_similarity": 0.3,
                               "oracle": 0.2} if has_oracle
-                             else {"judge": 0.5, "patch_reproduction": 0.5}),
+                             else {"judge": 0.5, "patch_similarity": 0.5}),
     }
