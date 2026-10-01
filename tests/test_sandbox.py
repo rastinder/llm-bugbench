@@ -91,3 +91,34 @@ def test_sandbox_stays_small_for_a_data_heavy_repo(tmp_path):
     (src / "m.py").write_text("x=1")
     sb = build_sandbox(src, tmp_path / "sb")
     assert size_bytes(sb) < 1_000_000
+
+
+class TestDropTests:
+    """The agent's workspace must contain no test file at all, so there is nothing to deny."""
+
+    def _repo(self, tmp_path):
+        src = tmp_path / "repo"; (src / "pkg" / "tests").mkdir(parents=True)
+        (src / "pkg" / "m.py").write_text("x=1\n")
+        (src / "pkg" / "__init__.py").write_text("")
+        (src / "pkg" / "tests" / "test_m.py").write_text("def test_x(): assert True\n")
+        (src / "test_top.py").write_text("def test_y(): assert True\n")
+        (src / "conftest.py").write_text("import sys\n")
+        (src / "spec.js.test.ts").write_text("test('a',()=>{})\n")
+        return src
+
+    def test_tests_are_removed_when_requested(self, tmp_path):
+        sb = build_sandbox(self._repo(tmp_path), tmp_path / "sb", drop_tests=True)
+        assert not list(sb.rglob("test_*.py"))
+        assert not list(sb.rglob("conftest.py"))
+        assert not (sb / "spec.js.test.ts").exists()
+
+    def test_source_survives_the_removal(self, tmp_path):
+        sb = build_sandbox(self._repo(tmp_path), tmp_path / "sb", drop_tests=True)
+        assert (sb / "pkg" / "m.py").read_text() == "x=1\n"
+        assert (sb / "pkg" / "__init__.py").exists()
+
+    def test_grading_sandbox_keeps_its_tests_by_default(self, tmp_path):
+        """The grader needs the tests; dropping them by default would silently disable
+        every oracle."""
+        sb = build_sandbox(self._repo(tmp_path), tmp_path / "sb")
+        assert list(sb.rglob("test_*.py"))

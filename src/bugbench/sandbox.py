@@ -82,12 +82,18 @@ _IGNORE_NAMES = {
 }
 
 
-def build_sandbox(repo: Path, dest: Path) -> Path:
+def build_sandbox(repo: Path, dest: Path, drop_tests: bool = False) -> Path:
     """Materialise a cheap, runnable copy of ``repo`` at ``dest``.
 
     Source files are copied; ``venv``/``node_modules`` are symlinked so imports resolve
     without duplicating gigabytes; runtime-output directories and anything oversized are
     skipped.
+
+    ``drop_tests`` removes every test file from the copy. This is not hygiene, it is the
+    isolation boundary: a copy handed to an agent that still contains the repository's own
+    test suite hands over the answers to any task drawn from that repository. The grader
+    keeps its tests (it needs them); the agent's workspace must not have them at all, so
+    there is nothing to deny rather than something to protect.
     """
     repo, dest = Path(repo), Path(dest)
     dest.mkdir(parents=True, exist_ok=True)
@@ -114,7 +120,25 @@ def build_sandbox(repo: Path, dest: Path) -> Path:
             if name.endswith((".pyc", ".pyo")):
                 continue
             shutil.copy2(item, dest / name)
+
+    if drop_tests:
+        for path in sorted(dest.rglob("*"), reverse=True):
+            if path.is_file() and _is_test_file(path):
+                path.unlink()
+            elif path.is_dir() and _looks_like_test_dir(path):
+                shutil.rmtree(path, ignore_errors=True)
     return dest
+
+
+def _is_test_file(path: Path) -> bool:
+    name = path.name
+    return (name.startswith("test_") or name.endswith(("_test.py", ".test.js",
+            ".spec.ts", ".test.ts", "_test.go"))
+            or name in {"conftest.py"})
+
+
+def _looks_like_test_dir(path: Path) -> bool:
+    return path.name in {"tests", "test", "spec", "specs", "__tests__"}
 
 
 def dir_size(path: Path, skip_prunable: bool = False) -> int:
