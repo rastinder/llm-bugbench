@@ -1,0 +1,85 @@
+# Execution-bench isolation: two containers, no shared writable state.
+#
+# The model must never be able to read the tests that judge it, and must never be able to
+# influence the grading process. Everything below serves those two facts.
+#
+#   bench     the agent's workspace. Sees `code/` only. No route to services, no egress.
+#   services  the grader plus the fake upstreams. Holds `test/`, mounted nowhere else.
+#
+# Defence is layered on purpose, because no single layer is sufficient:
+#   * a guest uid, so a hole in the interpreter-level controls is still contained by the
+#     kernel rather than reaching the filesystem;
+#   * Python's audit hook / Node's --permission, which deny the test path precisely;
+#   * no egress, so the test contents cannot simply be sent somewhere and read back.
+#
+# The audit hook alone is NOT the boundary: ctypes can issue a raw open(2), and a
+# subprocess runs without the hook installed. The uid is what actually holds.
+
+name: bugbench-exec
+
+x-common: &common
+  # Determinism: a fixed clock, a fixed locale and a fixed hash seed, so identical inputs
+  # produce identical behaviour and a flake can be attributed to the model rather than the
+  # environment.
+  environment: &determinism
+    TZ: UTC
+    LC_ALL: C
+    LANG: C
+    PYTHONHASHSEED: "0"
+    PYTHONDONTWRITEBYTECODE: "1"
+    NO_COLOR: "1"
+    COLUMNS: "80"
+
+services:
+  bench:
+    <<: *common
+    build:
+      context: ./docker/bench
+    working_dir: /work
+    volumes:
+      - type: bind
+        source: ./run
+        target: /work
+    # No `test/` here, by construction rather than by convention.
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    networks:
+      - internal
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 4.0
+
+  services:
+    <<: *common
+    build:
+      context: ./docker/services
+    user: "0:0"          # the grader must read test/, which is root-owned and 0700
+    volumes:
+      - type: bind
+        source: ./run/tasks
+        target: /tasks
+        read_only: true
+      - type: bind
+        source: ./run/tasks
+        target: /grading
+        read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    networks:
+      - internal
+    pids_limit: 256
+    mem_limit: 2g
+    cpus: 2.0
+    command: ["python", "-m", "bugbench.services"]
+
+networks:
+  internal:
+    # `internal: true` means no route off this network at all: the grader cannot reach a
+    # package index, and the model cannot exfiltrate anything it reads.
+    internal: true
