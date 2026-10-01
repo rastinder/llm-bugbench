@@ -325,6 +325,41 @@ denial · `docker-compose.yml` two containers.
 
 **275 tests pass, 2 skipped** (root-only). End-to-end pipeline proven on the real panel.
 
+## Campaign results (2026-10-01, live)
+
+Two adapter families, because a diff-returning API understates an agentic model:
+`bugbench.attempt` (diff) and `scripts/run_agent_campaign.py` (agent edits files directly
+in a sandbox and is graded on what it leaves on disk).
+
+| Model | Interface | Fixed | Mean | Latency |
+|---|---|---:|---:|---:|
+| agy/Gemini 3.6 Flash (High) | agent | 10/10 | 1.000 | 71s |
+| agy/Claude Sonnet 4.6 (Thinking) | agent | 9/10, then 10/10 | 0.900 → 1.000 | 21s |
+| openrouter-space-bunny-alpha | diff | 8/8 | 1.000 | 46s |
+| local mimo-v26-9b-mtp | diff | 0/8 | 0.000 | 80s |
+
+**The panel cannot separate two frontier models, and that is the headline.** The one
+apparent separation (Sonnet 9/10 vs Gemini 10/10) did not survive a repeat: the same Sonnet
+run scored 10/10 on the identical panel. The pre-registered analysis returns INCONCLUSIVE
+(d=+0.10, CI (0.00, 0.30) straddling δ₀=0.10) — not a tie, and not a win.
+
+**Agent run-to-run variance is real and measured.** Same model, same panel, temperature 0:
+1 of 10 tasks differed between runs. A single run of an agent model is not a measurement of
+that model, so single-run comparisons need repeats. `majority_vote()` now reduces N repeats
+and reports stability separately.
+
+**Local 9B scores 0/8 for an interface reason, not a capability one.** It replies with
+`tool_call` XML asking for a shell instead of emitting a diff, which is what `needs_tools`
+records. It has not been tested through the agent interface, so no capability claim is made
+about it.
+
+Anti-cheat: 9/9 pass against the live frontier model that scored 8/8 — the case where a leak
+would show. The agent workspace contains **zero** test files (`drop_tests=True`), so there is
+nothing to read rather than something to deny; no smuggling was observed.
+
+Control: applying the KNOWN fix to each task scores 1.00 on 5/5, so a 0.00 is a genuine model
+failure and not a broken oracle.
+
 ## Panel composition (user chose Option A)
 
 `AutoPilot-Jobs` is the **backbone** — private, 88 fix commits, and it already ships
