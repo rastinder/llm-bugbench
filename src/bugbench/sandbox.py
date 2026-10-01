@@ -26,7 +26,25 @@ LINK = ("venv", ".venv", "node_modules", "env")
 
 #: Skipped entirely: large, and never needed to import or run a test.
 SKIP = (".git", "node_modules", "models", ".cache", "dist", "build", "target",
-        ".pytest_cache", "__pycache__", "screenshots", "downloads", "output")
+        ".pytest_cache", "__pycache__", "screenshots", "downloads", "output",
+        # Browser state: enormous, live sockets and lock files that cannot be copied
+        # (copytree raises ENXIO/EINVAL on SingletonSocket), and never imported by a test.
+        "shared-profile", "chrome-profile", "profile", "Default", "Crashpad",
+        ".browser-profile")
+
+
+def _skippable(item: Path) -> bool:
+    """True for anything we must not copy: sockets, fifos, devices, dead symlinks."""
+    try:
+        if item.is_symlink() and not item.exists():
+            return True
+        import stat
+        mode = item.lstat().st_mode
+        if stat.S_ISSOCK(mode) or stat.S_ISFIFO(mode) or stat.S_ISBLK(mode) or stat.S_ISCHR(mode):
+            return True
+    except OSError:
+        return True
+    return False
 
 
 def build_sandbox(repo: Path, dest: Path) -> Path:
@@ -41,6 +59,8 @@ def build_sandbox(repo: Path, dest: Path) -> Path:
     for item in repo.iterdir():
         name = item.name
         if name in SKIP:
+            continue
+        if _skippable(item):
             continue
         if item.is_dir():
             if name in LINK:

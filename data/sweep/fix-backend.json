@@ -1,0 +1,32 @@
+[
+  {
+    "task_id": ".fix-backend__mut_358095f8c13f",
+    "codebase": ".fix-backend",
+    "module": "copilot_signalr_backend.py",
+    "bug_id": "mut_358095f8c13f",
+    "symbol": "_append_signalr_frame_log",
+    "operator": "and",
+    "line": 62,
+    "test_node": "test_copilot_signalr_backend.py::test_frame_log_rotates_and_stays_bounded[copilot_signalr_backend]",
+    "n_failing": 1,
+    "depth": "function",
+    "green_tests": [
+      "test_copilot_signalr_backend.py"
+    ]
+  },
+  {
+    "task_id": ".fix-backend__mut_3e9846e405f7",
+    "codebase": ".fix-backend",
+    "module": "copilot_signalr_backend_vps.py",
+    "bug_id": "mut_3e9846e405f7",
+    "symbol": "_append_signalr_frame_log",
+    "operator": "and",
+    "line": 62,
+    "test_node": "test_copilot_signalr_backend.py::test_frame_log_rotates_and_stays_bounded[copilot_signalr_backend_vps_test]",
+    "n_failing": 1,
+    "depth": "function",
+    "green_tests": [
+      "test_copilot_signalr_backend.py"
+    ]
+  }
+]

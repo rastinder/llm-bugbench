@@ -40,3 +40,25 @@ def test_skips_vcs_and_caches(tmp_path):
     sb = build_sandbox(src, tmp_path / "sb")
     assert not (sb / ".git").exists()
     assert (sb / "a.py").exists()
+
+
+def test_skips_browser_profiles_and_sockets(tmp_path):
+    """A Chromium profile holds live sockets and lock files that copytree cannot read
+    (ENXIO on SingletonSocket). They are also enormous and never imported by a test."""
+    import socket
+    src = tmp_path / "repo"; src.mkdir()
+    (src / "a.py").write_text("x=1")
+    prof = src / "shared-profile"; prof.mkdir()
+    (prof / "Cookies").write_text("junk")
+    s = socket.socket(socket.AF_UNIX); s.bind(str(prof / "SingletonSocket"))
+    sb = build_sandbox(src, tmp_path / "sb")
+    s.close()
+    assert (sb / "a.py").exists()
+    assert not (sb / "shared-profile").exists()
+
+def test_survives_a_dead_symlink(tmp_path):
+    src = tmp_path / "repo"; src.mkdir()
+    (src / "a.py").write_text("x=1")
+    (src / "broken").symlink_to("/nonexistent/path")
+    sb = build_sandbox(src, tmp_path / "sb")
+    assert (sb / "a.py").exists()

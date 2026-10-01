@@ -1,0 +1,62 @@
+[
+  {
+    "task_id": "copilot-model-audit__mut_09a2530fc872",
+    "codebase": "copilot-model-audit",
+    "module": "check_model_menu.py",
+    "bug_id": "mut_09a2530fc872",
+    "symbol": "read_alert_state",
+    "operator": "none",
+    "line": 126,
+    "test_node": "ModelMenuAuditTests.py::test_empty_ui_retries_and_recovers",
+    "n_failing": 2,
+    "depth": "function",
+    "green_tests": [
+      "test_check_model_menu.py"
+    ]
+  },
+  {
+    "task_id": "copilot-model-audit__mut_f35cf9a8a777",
+    "codebase": "copilot-model-audit",
+    "module": "check_model_menu.py",
+    "bug_id": "mut_f35cf9a8a777",
+    "symbol": "run_audit",
+    "operator": "lt",
+    "line": 196,
+    "test_node": "ModelMenuAuditTests.py::test_alert_failure_keeps_previous_state_for_retry",
+    "n_failing": 9,
+    "depth": "function",
+    "green_tests": [
+      "test_check_model_menu.py"
+    ]
+  },
+  {
+    "task_id": "copilot-model-audit__mut_52188f8e7650",
+    "codebase": "copilot-model-audit",
+    "module": "check_model_menu.py",
+    "bug_id": "mut_52188f8e7650",
+    "symbol": "run_audit",
+    "operator": "false",
+    "line": 202,
+    "test_node": "ModelMenuAuditTests.py::test_malformed_snapshot_is_not_overwritten",
+    "n_failing": 1,
+    "depth": "function",
+    "green_tests": [
+      "test_check_model_menu.py"
+    ]
+  },
+  {
+    "task_id": "copilot-model-audit__mut_3e55b95e7a57",
+    "codebase": "copilot-model-audit",
+    "module": "check_model_menu.py",
+    "bug_id": "mut_3e55b95e7a57",
+    "symbol": "run_audit",
+    "operator": "one",
+    "line": 206,
+    "test_node": "ModelMenuAuditTests.py::test_catalog_failure_preserves_last_known_good_state",
+    "n_failing": 4,
+    "depth": "function",
+    "green_tests": [
+      "test_check_model_menu.py"
+    ]
+  }
+]
