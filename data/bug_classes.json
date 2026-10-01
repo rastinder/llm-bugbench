@@ -1,0 +1,12 @@
+{
+ "unhandled failure": 39,
+ "other logic defect": 36,
+ "missing / null value": 31,
+ "infinite loop / retry": 13,
+ "duplicate / double-processing": 8,
+ "concurrency / resource leak": 9,
+ "wrong ordering / precedence": 5,
+ "validation gap": 21,
+ "partial iteration": 5,
+ "boundary / truncation": 2
+}

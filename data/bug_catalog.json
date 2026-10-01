@@ -1,0 +1,1692 @@
+[
+ {
+  "task_id": "B0202",
+  "language": "python",
+  "file": "test_prompt_budget.py",
+  "summary": "Separate old and new tool call/result units in chat messages",
+  "defect": "The function fails to distinguish between old/new tool calls and results, causing incorrect grouping of units Trigger: When messages contain 'old-call', 'old-result', 'new-call', or 'new-result' units",
+  "trigger": "When messages contain 'old-call', 'old-result', 'new-call', or 'new-result' units",
+  "n_tokens_buggy": 59,
+  "n_tokens_fix": 85
+ },
+ {
+  "task_id": "B0195",
+  "language": "python",
+  "file": "copilot_proxy.py",
+  "summary": "Formats chat messages for prompt construction",
+  "defect": "System messages are not included in the final prompt when message_texts exceed MAX_HISTORY_MESSAGES Trigger: When normalized_messages contains system messages and message_texts length exceeds MAX_HISTORY_MESSAGES",
+  "trigger": "When normalized_messages contains system messages and message_texts length exceeds MAX_HISTORY_MESSAGES",
+  "n_tokens_buggy": 172,
+  "n_tokens_fix": 19
+ },
+ {
+  "task_id": "B0198",
+  "language": "python",
+  "file": "copilot_proxy.py",
+  "summary": "Builds and validates an Anthropic prompt from a request",
+  "defect": "The function fails to handle cases where prompt construction exceeds budget limits, causing an unhandled exception Trigger: When build_anthropic_prompt raises PromptBudgetExceeded",
+  "trigger": "When build_anthropic_prompt raises PromptBudgetExceeded",
+  "n_tokens_buggy": 18,
+  "n_tokens_fix": 25
+ },
+ {
+  "task_id": "B0201",
+  "language": "python",
+  "file": "unified_tools.py",
+  "summary": "Removes tool capability blocks from text",
+  "defect": "Fails to remove CLIENT TOOL CAPABILITIES blocks with trailing 'Caller requested tools' lines Trigger: Text containing 'Caller requested tools' after END TOOL CAPABILITIES",
+  "trigger": "Text containing 'Caller requested tools' after END TOOL CAPABILITIES",
+  "n_tokens_buggy": 33,
+  "n_tokens_fix": 46
+ },
+ {
+  "task_id": "B0246",
+  "language": "javascript",
+  "file": "test-web-chat-recovery.js",
+  "summary": "Wait for streaming response with completion signal requirement",
+  "defect": "The function incorrectly returns a response when completionSignal is false, violating the requireCompletionSignal requirement Trigger: When completionSignal is false and requireCompletionSignal is true",
+  "trigger": "When completionSignal is false and requireCompletionSignal is true",
+  "n_tokens_buggy": 96,
+  "n_tokens_fix": 108
+ },
+ {
+  "task_id": "B0269",
+  "language": "python",
+  "file": "run_proof.py",
+  "summary": "Records hover and focus state of a tool card",
+  "defect": "The function captures style states from the wrong child div (last) instead of the correct one (first) Trigger: When the tool card has multiple child divs",
+  "trigger": "When the tool card has multiple child divs",
+  "n_tokens_buggy": 27,
+  "n_tokens_fix": 32
+ },
+ {
+  "task_id": "B0330",
+  "language": "python",
+  "file": "tool_layer.py",
+  "summary": "Check if brain text intends tool execution",
+  "defect": "The function incorrectly returns True when a fenced command is present, even if the text claims a 'Verified result' Trigger: Text containing a fenced command and 'Verified result'",
+  "trigger": "Text containing a fenced command and 'Verified result'",
+  "n_tokens_buggy": 52,
+  "n_tokens_fix": 123
+ },
+ {
+  "task_id": "B0200",
+  "language": "python",
+  "file": "unified_tools.py",
+  "summary": "Generates a formatted string describing client tool capabilities.",
+  "defect": "The function incorrectly includes an empty line after the closing delimiter, even when no tools are provided. Trigger: When called with no tools (tools=None or empty list)",
+  "trigger": "When called with no tools (tools=None or empty list)",
+  "n_tokens_buggy": 62,
+  "n_tokens_fix": 64
+ },
+ {
+  "task_id": "B0112",
+  "language": "shell",
+  "file": "watchdog.sh",
+  "summary": "Monitor and log tmux session activity and stalls",
+  "defect": "The function incorrectly assumes a session is stalled when its pane content hasn't changed, without considering whether the system is actively processing model traffic Trigger: When a session's pane content remains unchanged while the proxy is busy",
+  "trigger": "When a session's pane content remains unchanged while the proxy is busy",
+  "n_tokens_buggy": 177,
+  "n_tokens_fix": 219
+ },
+ {
+  "task_id": "B0446",
+  "language": "python",
+  "file": "tool_layer.py",
+  "summary": "Prepare payload for local model API calls",
+  "defect": "The function fails to handle vendor-specific parameters for llama.cpp server, causing TypeError when passed as top-level kwargs Trigger: When chat_template_kwargs is passed as a top-level argument to a llama.cpp server endpoint",
+  "trigger": "When chat_template_kwargs is passed as a top-level argument to a llama.cpp server endpoint",
+  "n_tokens_buggy": 44,
+  "n_tokens_fix": 320
+ },
+ {
+  "task_id": "B0469",
+  "language": "python",
+  "file": "test_benchmark_search.py",
+  "summary": "Function should handle static SWE scores correctly",
+  "defect": "The function incorrectly returns the SWE score as the effective DeepSWE score when no DeepSWE score exists Trigger: Input with only a 'swe_score' key and no 'deepswe_score'",
+  "trigger": "Input with only a 'swe_score' key and no 'deepswe_score'",
+  "n_tokens_buggy": 19,
+  "n_tokens_fix": 123
+ },
+ {
+  "task_id": "B0350",
+  "language": "python",
+  "file": "monitor.py",
+  "summary": "Extracts listings from XML data while filtering junk labels",
+  "defect": "The function fails to deduplicate listings when the same title appears in different normalised forms Trigger: When a title appears in multiple normalised forms (e.g., 'House' and 'house')",
+  "trigger": "When a title appears in multiple normalised forms (e.g., 'House' and 'house')",
+  "n_tokens_buggy": 185,
+  "n_tokens_fix": 204
+ },
+ {
+  "task_id": "B0448",
+  "language": "python",
+  "file": "test_splitbrain_bridge.py",
+  "summary": "Local payload should not include chat_template_kwargs",
+  "defect": "The function incorrectly includes chat_template_kwargs in the payload, which violates the default behavior of disabling thinking Trigger: When preparing a local payload with no explicit thinking configuration",
+  "trigger": "When preparing a local payload with no explicit thinking configuration",
+  "n_tokens_buggy": 15,
+  "n_tokens_fix": 68
+ },
+ {
+  "task_id": "B0027",
+  "language": "python",
+  "file": "simple_pdf_generator.py",
+  "summary": "Render experience entries with a single heading",
+  "defect": "Separate headings for India and Canada are added when both exist, but entries should be merged under one heading Trigger: When both 'experience_india' and 'experience_canada' are non-empty",
+  "trigger": "When both 'experience_india' and 'experience_canada' are non-empty",
+  "n_tokens_buggy": 54,
+  "n_tokens_fix": 48
+ },
+ {
+  "task_id": "B0013",
+  "language": "python",
+  "file": "hybrid_resume_builder.py",
+  "summary": "Parse Markdown resume into structured dictionary",
+  "defect": "Incorrectly includes contact information as professional summary when it appears immediately after a heading Trigger: Markdown with contact info after a heading",
+  "trigger": "Markdown with contact info after a heading",
+  "n_tokens_buggy": 130,
+  "n_tokens_fix": 136
+ },
+ {
+  "task_id": "B0045",
+  "language": "python",
+  "file": "cloak_copilot_bridge.py",
+  "summary": "Stop the browser context gracefully",
+  "defect": "The stop() method fails silently if closing the context raises an exception Trigger: When the context.close() call raises an exception",
+  "trigger": "When the context.close() call raises an exception",
+  "n_tokens_buggy": 59,
+  "n_tokens_fix": 284
+ },
+ {
+  "task_id": "B0106",
+  "language": "javascript",
+  "file": "zen_proxy.mjs",
+  "summary": "Proxy error handling should release resources",
+  "defect": "The function does not release resources after handling a proxy error, potentially causing leaks Trigger: When a proxy error occurs and the function exits",
+  "trigger": "When a proxy error occurs and the function exits",
+  "n_tokens_buggy": 20,
+  "n_tokens_fix": 24
+ },
+ {
+  "task_id": "B0268",
+  "language": "python",
+  "file": "run_proof.py",
+  "summary": "Determine if a route has no errors in events",
+  "defect": "Ignores specific console errors and same-origin failures related to favicon loading Trigger: When console has ignored errors or same_origin_failures has favicon-related entries",
+  "trigger": "When console has ignored errors or same_origin_failures has favicon-related entries",
+  "n_tokens_buggy": 14,
+  "n_tokens_fix": 75
+ },
+ {
+  "task_id": "B0337",
+  "language": "python",
+  "file": "cli.py",
+  "summary": "Categorise findings into auto-fixable, report-only, and unfixable",
+  "defect": "Findsings with codes in AUTO_FIXABLE_CODES are incorrectly classified as auto-fixable even when their target is not fixable Trigger: A finding with a code in AUTO_FIXABLE_CODES and a non-fixable target",
+  "trigger": "A finding with a code in AUTO_FIXABLE_CODES and a non-fixable target",
+  "n_tokens_buggy": 29,
+  "n_tokens_fix": 127
+ },
+ {
+  "task_id": "B0338",
+  "language": "python",
+  "file": "cli.py",
+  "summary": "Sets cycle status based on fixability and report-only flag",
+  "defect": "The status is incorrectly set to 'clean' or 'report-only' when there are unfixable findings, which should instead be 'unfixable-findings' Trigger: When buckets['unfixable'] is non-empty and buckets['auto_fixable'] is false",
+  "trigger": "When buckets['unfixable'] is non-empty and buckets['auto_fixable'] is false",
+  "n_tokens_buggy": 27,
+  "n_tokens_fix": 78
+ },
+ {
+  "task_id": "B0452",
+  "language": "python",
+  "file": "refresh_and_benchmark_models.py",
+  "summary": "Ensure last_resort_alias is the final entry in the fallback chain",
+  "defect": "The fallback chain may end with an entry other than last_resort_alias, violating the requirement that it must be the final entry Trigger: When the chain is trimmed or modified after building it",
+  "trigger": "When the chain is trimmed or modified after building it",
+  "n_tokens_buggy": 162,
+  "n_tokens_fix": 330
+ },
+ {
+  "task_id": "B0002",
+  "language": "python",
+  "file": "video.py",
+  "summary": "Generate a video from a text prompt using available backends",
+  "defect": "The LTX i2v backend crashes during loading on torch 2.11, causing the function to fall back to unreliable methods Trigger: When torch 2.11 is used and LTX i2v is attempted",
+  "trigger": "When torch 2.11 is used and LTX i2v is attempted",
+  "n_tokens_buggy": 157,
+  "n_tokens_fix": 188
+ },
+ {
+  "task_id": "B0209",
+  "language": "javascript",
+  "file": "popup-recovery.js",
+  "summary": "Classifies UI elements by interaction type",
+  "defect": "The 'dismiss' interaction type is not recognized, causing it to be treated as 'close' instead Trigger: When an element has an aria-label containing 'dismiss'",
+  "trigger": "When an element has an aria-label containing 'dismiss'",
+  "n_tokens_buggy": 62,
+  "n_tokens_fix": 70
+ },
+ {
+  "task_id": "B0334",
+  "language": "python",
+  "file": "test_prune.py",
+  "summary": "Prune cycles while preserving findings' media",
+  "defect": "The prune function removes media from cycles with findings when the budget is tight Trigger: When pruning with a very small max_bytes (1 byte)",
+  "trigger": "When pruning with a very small max_bytes (1 byte)",
+  "n_tokens_buggy": 51,
+  "n_tokens_fix": 117
+ },
+ {
+  "task_id": "B0003",
+  "language": "python",
+  "file": "gpu_video.py",
+  "summary": "Generate and save an image using SDXL model",
+  "defect": "The SDXL model is unloaded immediately after image generation, causing crashes when reusing it Trigger: Repeatedly generating images in quick succession",
+  "trigger": "Repeatedly generating images in quick succession",
+  "n_tokens_buggy": 30,
+  "n_tokens_fix": 50
+ },
+ {
+  "task_id": "B0004",
+  "language": "python",
+  "file": "gpu_video.py",
+  "summary": "Load StableDiffusionXLPipeline for image generation",
+  "defect": "The function leaks multiprocessing semaphores when using CPU offloading, causing crashes after ~4-5 generations Trigger: Generating more than 4-5 images with the loaded model",
+  "trigger": "Generating more than 4-5 images with the loaded model",
+  "n_tokens_buggy": 30,
+  "n_tokens_fix": 73
+ },
+ {
+  "task_id": "B0011",
+  "language": "python",
+  "file": "queue_proxy.py",
+  "summary": "Kill switch should only block usage paths",
+  "defect": "Kill switch rejects all upstream calls regardless of path, blocking non-usage paths like health checks Trigger: Any upstream call when kill switch is active",
+  "trigger": "Any upstream call when kill switch is active",
+  "n_tokens_buggy": 33,
+  "n_tokens_fix": 39
+ },
+ {
+  "task_id": "B0016",
+  "language": "python",
+  "file": "hybrid_resume_builder.py",
+  "summary": "Filters non-experience sections from role entries",
+  "defect": "The function incorrectly includes sections like 'projects' or 'education' in role entries when they contain bullet points Trigger: Sections named 'project', 'education', etc. with bullet points",
+  "trigger": "Sections named 'project', 'education', etc. with bullet points",
+  "n_tokens_buggy": 56,
+  "n_tokens_fix": 78
+ },
+ {
+  "task_id": "B0142",
+  "language": "python",
+  "file": "local_solver.py",
+  "summary": "Decode PNG image from bytes or file path",
+  "defect": "Fails to decode PNG bytes when grid_png_bytes is not a string, using a hardcoded fallback path instead Trigger: When grid_png_bytes is a byte buffer, not a string",
+  "trigger": "When grid_png_bytes is a byte buffer, not a string",
+  "n_tokens_buggy": 35,
+  "n_tokens_fix": 17
+ },
+ {
+  "task_id": "B0144",
+  "language": "python",
+  "file": "local_e2e.py",
+  "summary": "Parse JSON from local_solver.py output",
+  "defect": "Fails to parse JSON when it is embedded in non-JSON text, such as log lines Trigger: Output containing JSON amid other text, like ultralytics/onnx logs",
+  "trigger": "Output containing JSON amid other text, like ultralytics/onnx logs",
+  "n_tokens_buggy": 48,
+  "n_tokens_fix": 74
+ },
+ {
+  "task_id": "B0148",
+  "language": "python",
+  "file": "local_e2e.py",
+  "summary": "Classify tiles and return confidence scores",
+  "defect": "Uses incorrect key 'confidence' instead of 'target_confidence' in solution dict Trigger: When local_classify_tile returns a dict with 'target_confidence' key",
+  "trigger": "When local_classify_tile returns a dict with 'target_confidence' key",
+  "n_tokens_buggy": 93,
+  "n_tokens_fix": 91
+ },
+ {
+  "task_id": "B0242",
+  "language": "javascript",
+  "file": "popup-recovery.js",
+  "summary": "Determine if an element is visually visible",
+  "defect": "Fails to account for parent elements with hidden attributes or ARIA hidden state Trigger: Element with hidden parent or aria-hidden='true'",
+  "trigger": "Element with hidden parent or aria-hidden='true'",
+  "n_tokens_buggy": 43,
+  "n_tokens_fix": 80
+ },
+ {
+  "task_id": "B0256",
+  "language": "python",
+  "file": "test_pi_network_quality.py",
+  "summary": "Verify evaluation harness result and call parameters",
+  "defect": "The test fails to verify the existence of event_path after evaluation Trigger: When event_path does not exist after run_evaluation",
+  "trigger": "When event_path does not exist after run_evaluation",
+  "n_tokens_buggy": 22,
+  "n_tokens_fix": 22
+ },
+ {
+  "task_id": "B0277",
+  "language": "typescript",
+  "file": "catalog.ts",
+  "summary": "Validates product contents and prohibits certain patterns",
+  "defect": "The function assumes product.contents and product.includes are arrays, causing a runtime error if they are not Trigger: When product.contents or product.includes is not an array",
+  "trigger": "When product.contents or product.includes is not an array",
+  "n_tokens_buggy": 22,
+  "n_tokens_fix": 38
+ },
+ {
+  "task_id": "B0324",
+  "language": "python",
+  "file": "mass_report.py",
+  "summary": "Find node by text/content-desc in XML, handling escaped entities",
+  "defect": "Fails to match nodes with multiple text/content-desc attributes, only checks the first one Trigger: XML nodes with multiple text/content-desc attributes",
+  "trigger": "XML nodes with multiple text/content-desc attributes",
+  "n_tokens_buggy": 111,
+  "n_tokens_fix": 126
+ },
+ {
+  "task_id": "B0339",
+  "language": "python",
+  "file": "state.py",
+  "summary": "Track consecutive failures in a state object",
+  "defect": "The function increments 'consecutive_failures' for healthy statuses and resets it for others, which is the opposite of the intended logic Trigger: When 'summary.status' is in HEALTHY_STATUSES",
+  "trigger": "When 'summary.status' is in HEALTHY_STATUSES",
+  "n_tokens_buggy": 20,
+  "n_tokens_fix": 20
+ },
+ {
+  "task_id": "B0352",
+  "language": "python",
+  "file": "mass_report.py",
+  "summary": "Tap a result card and wait for the detail page to render",
+  "defect": "Fails to tap non-tappable title nodes or clickable containers, causing the detail page to not open Trigger: Service cards with non-tappable title nodes",
+  "trigger": "Service cards with non-tappable title nodes",
+  "n_tokens_buggy": 65,
+  "n_tokens_fix": 97
+ },
+ {
+  "task_id": "B0374",
+  "language": "python",
+  "file": "rag_layer.py",
+  "summary": "Hybrid retrieval via RRF fusion of dense and sparse arms",
+  "defect": "Fails to align sparse arm results with dense arm's index space, causing incorrect document resolution Trigger: When sparse arm returns IDs not present in dense arm's results",
+  "trigger": "When sparse arm returns IDs not present in dense arm's results",
+  "n_tokens_buggy": 185,
+  "n_tokens_fix": 139
+ },
+ {
+  "task_id": "B0375",
+  "language": "python",
+  "file": "blog_publisher.py",
+  "summary": "Merge and render a JSON object fragment in a string",
+  "defect": "The function fails to handle trailing commas in the original string, causing syntax errors when merging Trigger: When the original string has a trailing comma after the JSON fragment",
+  "trigger": "When the original string has a trailing comma after the JSON fragment",
+  "n_tokens_buggy": 105,
+  "n_tokens_fix": 144
+ },
+ {
+  "task_id": "B0413",
+  "language": "python",
+  "file": "stress_test.py",
+  "summary": "Verify engine fields are visible to the extractor",
+  "defect": "The check fails when an engine field is a GROUP type, even if the extractor sees it, because the label is constructed differently Trigger: A GROUP type field with a constructed label",
+  "trigger": "A GROUP type field with a constructed label",
+  "n_tokens_buggy": 238,
+  "n_tokens_fix": 314
+ },
+ {
+  "task_id": "B0414",
+  "language": "python",
+  "file": "human_input.py",
+  "summary": "Calculate humanised fill budget based on input length",
+  "defect": "The budget is too low for long inputs, causing timeouts and synthetic fills Trigger: Inputs longer than 27 characters (e.g., email, password)",
+  "trigger": "Inputs longer than 27 characters (e.g., email, password)",
+  "n_tokens_buggy": 210,
+  "n_tokens_fix": 284
+ },
+ {
+  "task_id": "B0459",
+  "language": "python",
+  "file": "refresh_and_benchmark_models.py",
+  "summary": "Preserve and validate non-auto fallback groups",
+  "defect": "The function fails to detect and drop fallback groups whose model is no longer registered, leaving dead configuration Trigger: When a fallback group references a model not in the registered list",
+  "trigger": "When a fallback group references a model not in the registered list",
+  "n_tokens_buggy": 46,
+  "n_tokens_fix": 120
+ },
+ {
+  "task_id": "B0052",
+  "language": "python",
+  "file": "herdr_goals.py",
+  "summary": "Submit a prompt and evaluate the response against a goal",
+  "defect": "The function fails to distinguish between submission errors and judge unavailability, leading to incorrect status updates Trigger: When the judge is unavailable but the submission succeeds",
+  "trigger": "When the judge is unavailable but the submission succeeds",
+  "n_tokens_buggy": 121,
+  "n_tokens_fix": 135
+ },
+ {
+  "task_id": "B0143",
+  "language": "python",
+  "file": "local_solver.py",
+  "summary": "Classify each tile in a grid into target class confidence.",
+  "defect": "The function processes all tiles in a single batch, causing incorrect confidence values when the model's batch processing affects individual predictions. Trigger: When the model's batch processing alters individual tile predictions.",
+  "trigger": "When the model's batch processing alters individual tile predictions.",
+  "n_tokens_buggy": 43,
+  "n_tokens_fix": 43
+ },
+ {
+  "task_id": "B0333",
+  "language": "python",
+  "file": "prune.py",
+  "summary": "Remove oldest cycle directories to free up space",
+  "defect": "Cycle directories are removed in arbitrary order, potentially deleting evidence from cycles that found issues Trigger: When multiple cycles exist with some being 'clean' and others not",
+  "trigger": "When multiple cycles exist with some being 'clean' and others not",
+  "n_tokens_buggy": 48,
+  "n_tokens_fix": 93
+ },
+ {
+  "task_id": "B0341",
+  "language": "python",
+  "file": "drift.py",
+  "summary": "Run remote SSH commands with configurable timeout",
+  "defect": "The function does not properly handle the command argument and does not support binary output Trigger: When the command contains special characters or requires binary output",
+  "trigger": "When the command contains special characters or requires binary output",
+  "n_tokens_buggy": 25,
+  "n_tokens_fix": 68
+ },
+ {
+  "task_id": "B0351",
+  "language": "python",
+  "file": "monitor.py",
+  "summary": "Filter and deduplicate location-based titles",
+  "defect": "Fails to skip distance nodes (e.g., 'Brampton \u00b7 5 km') and specific cities (Toronto, Vaughan, etc.) Trigger: Input containing '\u00b7 km' or city names",
+  "trigger": "Input containing '\u00b7 km' or city names",
+  "n_tokens_buggy": 81,
+  "n_tokens_fix": 119
+ },
+ {
+  "task_id": "B0438",
+  "language": "python",
+  "file": "capability_resolver.py",
+  "summary": "Retrieve and cache activity data from GitHub and local sources",
+  "defect": "The function does nothing and returns None, ignoring all inputs and not performing any activity retrieval or caching Trigger: Any call to the function with any inputs",
+  "trigger": "Any call to the function with any inputs",
+  "n_tokens_buggy": 26,
+  "n_tokens_fix": 121
+ },
+ {
+  "task_id": "B0051",
+  "language": "python",
+  "file": "herdr_goals.py",
+  "summary": "Processes goals until done or blocked, with stall detection.",
+  "defect": "The loop may not terminate if stall_limit is 0, as it lacks a counter. Trigger: When stall_limit is 0 and no progress is made.",
+  "trigger": "When stall_limit is 0 and no progress is made.",
+  "n_tokens_buggy": 194,
+  "n_tokens_fix": 138
+ },
+ {
+  "task_id": "B0289",
+  "language": "typescript",
+  "file": "store.ts",
+  "summary": "Report system health and product count",
+  "defect": "The health endpoint reports product count and catalog readiness incorrectly when catalog is not ready Trigger: When catalog is not ready (runtime.catalogReady is false)",
+  "trigger": "When catalog is not ready (runtime.catalogReady is false)",
+  "n_tokens_buggy": 42,
+  "n_tokens_fix": 58
+ },
+ {
+  "task_id": "B0363",
+  "language": "python",
+  "file": "github_harvest.py",
+  "summary": "Derive project sheet from raw cache without recomputing tiering",
+  "defect": "The function reads the evidence tier directly from the cache without recomputing it, causing stale tier values when rules change Trigger: When tier classification rules are updated but the cache is not refreshed",
+  "trigger": "When tier classification rules are updated but the cache is not refreshed",
+  "n_tokens_buggy": 73,
+  "n_tokens_fix": 118
+ },
+ {
+  "task_id": "B0489",
+  "language": "python",
+  "file": "test_resume_abandon.py",
+  "summary": "Test verifies that _resolve_resume_pdf respects timeout_s",
+  "defect": "The test fails to clean up pending tasks when timeout_s is exceeded Trigger: When _resolve_resume_pdf is called with timeout_s=30 and the task hangs",
+  "trigger": "When _resolve_resume_pdf is called with timeout_s=30 and the task hangs",
+  "n_tokens_buggy": 47,
+  "n_tokens_fix": 53
+ },
+ {
+  "task_id": "B0368",
+  "language": "python",
+  "file": "test_collector.py",
+  "summary": "Verify widget metrics and language breakdown",
+  "defect": "The metrics count for sessions, code mutations, and files touched are incorrect due to miscounting distinct files and excluding read operations Trigger: Input with multiple sessions and file edits",
+  "trigger": "Input with multiple sessions and file edits",
+  "n_tokens_buggy": 202,
+  "n_tokens_fix": 285
+ },
+ {
+  "task_id": "B0428",
+  "language": "python",
+  "file": "litellm_cooldown_policy.py",
+  "summary": "Classify deployment failures into cooldown buckets",
+  "defect": "Auth failures are incorrectly classified as transient rate limits when the status code is 429 and the body contains auth-related text Trigger: Status code 429 with auth-related body text",
+  "trigger": "Status code 429 with auth-related body text",
+  "n_tokens_buggy": 228,
+  "n_tokens_fix": 279
+ },
+ {
+  "task_id": "B0282",
+  "language": "javascript",
+  "file": "copilot-client.js",
+  "summary": "Retry failed requests to the M365 Copilot backend",
+  "defect": "Retries all errors, including queue-related errors, without distinguishing between transient and permanent failures Trigger: When the backend returns 'queue_shed' or 'queue full' errors",
+  "trigger": "When the backend returns 'queue_shed' or 'queue full' errors",
+  "n_tokens_buggy": 94,
+  "n_tokens_fix": 120
+ },
+ {
+  "task_id": "B0483",
+  "language": "python",
+  "file": "scout_server.py",
+  "summary": "Search the web using a leased browser window",
+  "defect": "The function may hang indefinitely if the browser operation takes longer than the timeout Trigger: When the browser operation exceeds the specified timeout",
+  "trigger": "When the browser operation exceeds the specified timeout",
+  "n_tokens_buggy": 201,
+  "n_tokens_fix": 234
+ },
+ {
+  "task_id": "B0192",
+  "language": "shell",
+  "file": "jwt-monitor.sh",
+  "summary": "Log SignalR response time and manage alert cooldown",
+  "defect": "The daily model menu audit runs unconditionally, ignoring the proxy health check Trigger: When $SUCCESS and $TRANSPORT are non-empty",
+  "trigger": "When $SUCCESS and $TRANSPORT are non-empty",
+  "n_tokens_buggy": 81,
+  "n_tokens_fix": 32
+ },
+ {
+  "task_id": "B0279",
+  "language": "typescript",
+  "file": "store.ts",
+  "summary": "Process Stripe webhook events and fulfill orders",
+  "defect": "The function crashes without error handling when webhook signature or event processing fails Trigger: Invalid webhook signature or malformed event data",
+  "trigger": "Invalid webhook signature or malformed event data",
+  "n_tokens_buggy": 28,
+  "n_tokens_fix": 57
+ },
+ {
+  "task_id": "B0288",
+  "language": "typescript",
+  "file": "stripeService.ts",
+  "summary": "Validate checkout session and order consistency",
+  "defect": "The function does not verify payment status, amount, currency, or order consistency before marking the order as paid Trigger: A checkout session with mismatched or invalid payment details",
+  "trigger": "A checkout session with mismatched or invalid payment details",
+  "n_tokens_buggy": 118,
+  "n_tokens_fix": 186
+ },
+ {
+  "task_id": "B0369",
+  "language": "python",
+  "file": "field_extractor.py",
+  "summary": "Classify experience questions into total, skill, or other.",
+  "defect": "The regex fails to capture skill names in questions with certain phrasings, such as 'years of experience with'. Trigger: Questions like 'years of experience with Selenium'",
+  "trigger": "Questions like 'years of experience with Selenium'",
+  "n_tokens_buggy": 266,
+  "n_tokens_fix": 293
+ },
+ {
+  "task_id": "B0404",
+  "language": "python",
+  "file": "bench_stt.py",
+  "summary": "Summarizes speech recognition benchmark metrics",
+  "defect": "Division by zero when total_words is zero, causing wer_pct to crash Trigger: When details contains no words (total_words=0)",
+  "trigger": "When details contains no words (total_words=0)",
+  "n_tokens_buggy": 107,
+  "n_tokens_fix": 142
+ },
+ {
+  "task_id": "B0405",
+  "language": "python",
+  "file": "blog_writer.py",
+  "summary": "Enhance a prompt by walking a chain of models",
+  "defect": "The function performs an unnecessary second pass when the first pass fails due to model rejections, wasting quota and delaying fallback Trigger: When all models reject the prompt in the first pass",
+  "trigger": "When all models reject the prompt in the first pass",
+  "n_tokens_buggy": 83,
+  "n_tokens_fix": 102
+ },
+ {
+  "task_id": "B0476",
+  "language": "python",
+  "file": "relay_server.py",
+  "summary": "Handle phone authorization and call setup",
+  "defect": "The function incorrectly skips token validation when reattaching a phone, allowing unauthorized access Trigger: When a phone reconnects with an existing call",
+  "trigger": "When a phone reconnects with an existing call",
+  "n_tokens_buggy": 113,
+  "n_tokens_fix": 141
+ },
+ {
+  "task_id": "B0479",
+  "language": "python",
+  "file": "relay_server.py",
+  "summary": "Pump tasks may die silently without logging",
+  "defect": "Pump tasks silently fail without logging when exceptions occur, and the queue is awaited instead of polled Trigger: When a pump task raises an exception or the queue blocks",
+  "trigger": "When a pump task raises an exception or the queue blocks",
+  "n_tokens_buggy": 80,
+  "n_tokens_fix": 151
+ },
+ {
+  "task_id": "B0480",
+  "language": "shell",
+  "file": "queue-watchdog.sh",
+  "summary": "Monitor task queue ages and report stalls or warnings",
+  "defect": "Fails to parse SQLite datetime strings (YYYY-MM-DD HH:MM:SS) and incorrectly handles missing timestamps, causing incorrect age calculations Trigger: Tasks with SQLite datetime format timestamps or missing timestamps",
+  "trigger": "Tasks with SQLite datetime format timestamps or missing timestamps",
+  "n_tokens_buggy": 183,
+  "n_tokens_fix": 197
+ },
+ {
+  "task_id": "B0501",
+  "language": "python",
+  "file": "capability_evidence.py",
+  "summary": "Read and parse project facts YAML files correctly",
+  "defect": "Project facts YAML files are read as raw text, losing 28 dated project units due to missing line structure Trigger: YAML files with project facts as input",
+  "trigger": "YAML files with project facts as input",
+  "n_tokens_buggy": 53,
+  "n_tokens_fix": 153
+ },
+ {
+  "task_id": "B0107",
+  "language": "javascript",
+  "file": "zen_proxy.mjs",
+  "summary": "Proxy requests to upstream API with configurable delays",
+  "defect": "No pacing or rate-limiting between requests, allowing bursts that may trigger upstream throttling Trigger: Consecutive rapid requests to the upstream API",
+  "trigger": "Consecutive rapid requests to the upstream API",
+  "n_tokens_buggy": 34,
+  "n_tokens_fix": 143
+ },
+ {
+  "task_id": "B0373",
+  "language": "python",
+  "file": "blog_publisher.py",
+  "summary": "Validate the structure of a JavaScript array in text",
+  "defect": "The function does not check for JavaScript syntax errors in the array, only structural issues like missing slugs or array markers Trigger: A syntactically invalid JavaScript array (e.g., missing comma)",
+  "trigger": "A syntactically invalid JavaScript array (e.g., missing comma)",
+  "n_tokens_buggy": 118,
+  "n_tokens_fix": 150
+ },
+ {
+  "task_id": "B0381",
+  "language": "python",
+  "file": "test_field_index_parity.py",
+  "summary": "Verify honeypot filter lives in shared enumerator",
+  "defect": "The test fails to check the JS code evaluated by collect_field_elements, missing the honeypot filter Trigger: When the filter is only in the JS, not the function body",
+  "trigger": "When the filter is only in the JS, not the function body",
+  "n_tokens_buggy": 127,
+  "n_tokens_fix": 215
+ },
+ {
+  "task_id": "B0482",
+  "language": "python",
+  "file": "scout_server.py",
+  "summary": "Extracts non-empty lines from a string, stopping at AI Mode tail markers.",
+  "defect": "The function does not ignore lines matching AIMODE_CHROME_LINES, causing them to be included in the output. Trigger: Input containing lines matching AIMODE_CHROME_LINES.",
+  "trigger": "Input containing lines matching AIMODE_CHROME_LINES.",
+  "n_tokens_buggy": 41,
+  "n_tokens_fix": 46
+ },
+ {
+  "task_id": "B0500",
+  "language": "python",
+  "file": "capability_evidence.py",
+  "summary": "Load corpus files from a manifest-driven list, not hardcoded paths.",
+  "defect": "Hardcoded paths ignore new files and fail to exclude invalid ones, causing silent corruption. Trigger: Adding a valid file to the corpus or including an invalid one.",
+  "trigger": "Adding a valid file to the corpus or including an invalid one.",
+  "n_tokens_buggy": 67,
+  "n_tokens_fix": 279
+ },
+ {
+  "task_id": "B0043",
+  "language": "shell",
+  "file": "capture_loop.sh",
+  "summary": "Capture WiFi packets with a BPF filter",
+  "defect": "The tool fails to apply the BPF filter file, causing all packets to be captured instead of only those matching the filter Trigger: When the BPF filter file exists but is not being used",
+  "trigger": "When the BPF filter file exists but is not being used",
+  "n_tokens_buggy": 25,
+  "n_tokens_fix": 27
+ },
+ {
+  "task_id": "B0060",
+  "language": "python",
+  "file": "herdr_supervisor.py",
+  "summary": "Determine agent state via local judge model",
+  "defect": "The payload incorrectly uses 'evidence' as the key in the SUPERVISOR_PROMPT format, causing the tail content to be omitted Trigger: When the SUPERVISOR_PROMPT expects 'tail' as a key",
+  "trigger": "When the SUPERVISOR_PROMPT expects 'tail' as a key",
+  "n_tokens_buggy": 52,
+  "n_tokens_fix": 52
+ },
+ {
+  "task_id": "B0070",
+  "language": "python",
+  "file": "herdr_supervisor.py",
+  "summary": "Determine the local judge model name dynamically",
+  "defect": "The function hardcodes 'qwen2.5-coder-judge' as the model name, ignoring runtime changes or environment overrides Trigger: When the served model name changes or AUTOFREE_JUDGE_MODEL is set",
+  "trigger": "When the served model name changes or AUTOFREE_JUDGE_MODEL is set",
+  "n_tokens_buggy": 32,
+  "n_tokens_fix": 88
+ },
+ {
+  "task_id": "B0290",
+  "language": "typescript",
+  "file": "index.ts",
+  "summary": "Validate Stripe configuration in production",
+  "defect": "Stripe client is initialized without validating the secret key format in production Trigger: Production environment with an invalid Stripe key",
+  "trigger": "Production environment with an invalid Stripe key",
+  "n_tokens_buggy": 71,
+  "n_tokens_fix": 169
+ },
+ {
+  "task_id": "B0364",
+  "language": "python",
+  "file": "github_harvest.py",
+  "summary": "Classify repositories based on evidence and confidence",
+  "defect": "The function incorrectly drops repositories with 'E_placeholder' tier without re-evaluating their evidence Trigger: Repositories with 'E_placeholder' tier but valid commit evidence",
+  "trigger": "Repositories with 'E_placeholder' tier but valid commit evidence",
+  "n_tokens_buggy": 41,
+  "n_tokens_fix": 87
+ },
+ {
+  "task_id": "B0365",
+  "language": "python",
+  "file": "test_experience_figures.py",
+  "summary": "The function should use an injected as_of date, not the wall clock.",
+  "defect": "The function reads the current date instead of using the injected as_of, causing figures to be frozen at the test run time. Trigger: Any test run on a date other than the injected as_of.",
+  "trigger": "Any test run on a date other than the injected as_of.",
+  "n_tokens_buggy": 37,
+  "n_tokens_fix": 183
+ },
+ {
+  "task_id": "B0018",
+  "language": "python",
+  "file": "mcp_server.py",
+  "summary": "Navigate to BotFather chat in Telegram Web",
+  "defect": "Search functionality fails to find BotFather chat when it exists in the sidebar Trigger: BotFather chat is present in the sidebar but not in search results",
+  "trigger": "BotFather chat is present in the sidebar but not in search results",
+  "n_tokens_buggy": 38,
+  "n_tokens_fix": 27
+ },
+ {
+  "task_id": "B0357",
+  "language": "python",
+  "file": "verify_applications.py",
+  "summary": "Read Indeed messages with a stealth page",
+  "defect": "The function fails to clean up the stealth page after use, potentially leaving shared tabs open Trigger: When the page is reused or shared across multiple operations",
+  "trigger": "When the page is reused or shared across multiple operations",
+  "n_tokens_buggy": 43,
+  "n_tokens_fix": 86
+ },
+ {
+  "task_id": "B0044",
+  "language": "shell",
+  "file": "crack_watch.sh",
+  "summary": "Extract SSID from handshake file and log cracking attempt",
+  "defect": "Logs cracking attempt for all BSSIDs, including non-targets, without filtering Trigger: Any BSSID not in the predefined list",
+  "trigger": "Any BSSID not in the predefined list",
+  "n_tokens_buggy": 28,
+  "n_tokens_fix": 61
+ },
+ {
+  "task_id": "B0481",
+  "language": "python",
+  "file": "test_ai_mode.py",
+  "summary": "Search AI mode should handle timeout or no_answer responses",
+  "defect": "The function fails to handle 'no_answer' responses, only 'timeout', causing assertions to fail when the response is 'no_answer' Trigger: When the search returns 'no_answer' instead of 'timeout'",
+  "trigger": "When the search returns 'no_answer' instead of 'timeout'",
+  "n_tokens_buggy": 29,
+  "n_tokens_fix": 30
+ },
+ {
+  "task_id": "B0008",
+  "language": "python",
+  "file": "read_conv.py",
+  "summary": "Parse session IDs from command-line arguments",
+  "defect": "The function incorrectly treats '--raw' as a session ID when provided as the first argument Trigger: When '--raw' is passed as the first argument",
+  "trigger": "When '--raw' is passed as the first argument",
+  "n_tokens_buggy": 48,
+  "n_tokens_fix": 51
+ },
+ {
+  "task_id": "B0010",
+  "language": "python",
+  "file": "indeed_applier.py",
+  "summary": "Advances through a multi-step form by clicking buttons",
+  "defect": "The function fails to distinguish between 'Continue with Google' and other 'Continue' buttons, leading to incorrect clicks on non-Google buttons when the user is logged in via Google Trigger: When the page contains both 'Continue' and 'Continue with Google' buttons",
+  "trigger": "When the page contains both 'Continue' and 'Continue with Google' buttons",
+  "n_tokens_buggy": 117,
+  "n_tokens_fix": 193
+ },
+ {
+  "task_id": "B0019",
+  "language": "python",
+  "file": "mcp_server.py",
+  "summary": "Generates a bot username with retry suffix",
+  "defect": "The function incorrectly appends '_bot' to the base username even when it already ends with '_bot', leading to duplicate '_bot' suffixes Trigger: When the base username already ends with '_bot'",
+  "trigger": "When the base username already ends with '_bot'",
+  "n_tokens_buggy": 36,
+  "n_tokens_fix": 42
+ },
+ {
+  "task_id": "B0033",
+  "language": "python",
+  "file": "queue_proxy.py",
+  "summary": "HTTP request streaming and retry handling",
+  "defect": "The HTTP client connection is not properly closed when a retryable status is received during streaming, potentially leaking resources Trigger: Retryable status code during streaming",
+  "trigger": "Retryable status code during streaming",
+  "n_tokens_buggy": 127,
+  "n_tokens_fix": 125
+ },
+ {
+  "task_id": "B0035",
+  "language": "python",
+  "file": "freebuff_harness.py",
+  "summary": "Setup terminal attributes for interactive input",
+  "defect": "Fails to handle additional terminal-related exceptions (OSError, ValueError, io.UnsupportedOperation) Trigger: When terminal operations raise OSError, ValueError, or io.UnsupportedOperation",
+  "trigger": "When terminal operations raise OSError, ValueError, or io.UnsupportedOperation",
+  "n_tokens_buggy": 15,
+  "n_tokens_fix": 18
+ },
+ {
+  "task_id": "B0042",
+  "language": "shell",
+  "file": "overnight.sh",
+  "summary": "Check if wlan0mon is in monitor mode",
+  "defect": "The check for monitor mode fails when the interface exists but lacks detailed info Trigger: When wlan0mon exists but lacks 'type monitor' in its info",
+  "trigger": "When wlan0mon exists but lacks 'type monitor' in its info",
+  "n_tokens_buggy": 56,
+  "n_tokens_fix": 58
+ },
+ {
+  "task_id": "B0048",
+  "language": "python",
+  "file": "send.py",
+  "summary": "Send video to remote server via SSH and curl",
+  "defect": "The payload is passed as a command-line argument to curl, which may truncate or corrupt large payloads Trigger: When the payload exceeds curl's command-line argument length limit",
+  "trigger": "When the payload exceeds curl's command-line argument length limit",
+  "n_tokens_buggy": 55,
+  "n_tokens_fix": 56
+ },
+ {
+  "task_id": "B0054",
+  "language": "python",
+  "file": "goal_judge.py",
+  "summary": "Send a chat completion request to a model",
+  "defect": "The function fails to handle responses with empty or missing content fields, and uses a fixed max_tokens value that may truncate valid responses Trigger: Responses with empty content or reasoning_content fields, or responses exceeding 300 tokens",
+  "trigger": "Responses with empty content or reasoning_content fields, or responses exceeding 300 tokens",
+  "n_tokens_buggy": 57,
+  "n_tokens_fix": 86
+ },
+ {
+  "task_id": "B0064",
+  "language": "python",
+  "file": "field_extractor.py",
+  "summary": "Filter out non-application UI elements from form processing",
+  "defect": "The function processes UI elements that are part of site chrome (headers, footers, chatbots) as if they were application fields Trigger: Elements inside header, footer, or chatbot containers",
+  "trigger": "Elements inside header, footer, or chatbot containers",
+  "n_tokens_buggy": 58,
+  "n_tokens_fix": 126
+ },
+ {
+  "task_id": "B0072",
+  "language": "python",
+  "file": "rate.py",
+  "summary": "Extracts a frame from a video at a given time",
+  "defect": "Fails to extract a frame when the requested time is near or past the video's end Trigger: Input time `t` is near or past the video's duration",
+  "trigger": "Input time `t` is near or past the video's duration",
+  "n_tokens_buggy": 35,
+  "n_tokens_fix": 58
+ },
+ {
+  "task_id": "B0153",
+  "language": "python",
+  "file": "check_answer_ownership.py",
+  "summary": "Detects answer store violations and duplicate fingerprints",
+  "defect": "The fingerprint overlap check is applied to all files, causing false positives for source code files (.py/.js) that legitimately reference canonical phrases Trigger: Source code files (.py/.js) containing canonical phrases",
+  "trigger": "Source code files (.py/.js) containing canonical phrases",
+  "n_tokens_buggy": 69,
+  "n_tokens_fix": 116
+ },
+ {
+  "task_id": "B0155",
+  "language": "python",
+  "file": "opencode_telegram_bot.py",
+  "summary": "Extracts assistant response from ANSI-stripped output",
+  "defect": "Fails to handle boilerplate markers after the model line, returning incomplete or incorrect text Trigger: Output containing boilerplate markers after the model line",
+  "trigger": "Output containing boilerplate markers after the model line",
+  "n_tokens_buggy": 66,
+  "n_tokens_fix": 107
+ },
+ {
+  "task_id": "B0255",
+  "language": "javascript",
+  "file": "broker-lease.js",
+  "summary": "Acquires a lease from a broker service",
+  "defect": "The function does not prevent concurrent lease acquisition attempts, leading to duplicate requests Trigger: Rapid repeated calls to acquire()",
+  "trigger": "Rapid repeated calls to acquire()",
+  "n_tokens_buggy": 46,
+  "n_tokens_fix": 65
+ },
+ {
+  "task_id": "B0291",
+  "language": "typescript",
+  "file": "index.ts",
+  "summary": "Handle store request errors with appropriate status codes",
+  "defect": "Fails to detect 'conflict' errors and uses generic messages for 400/500 errors Trigger: Error messages containing 'conflict' or other new patterns",
+  "trigger": "Error messages containing 'conflict' or other new patterns",
+  "n_tokens_buggy": 46,
+  "n_tokens_fix": 63
+ },
+ {
+  "task_id": "B0346",
+  "language": "python",
+  "file": "llm_router.py",
+  "summary": "Configure the default LLM model for LiteLLM API calls.",
+  "defect": "The default model 'cerebras-gpt-oss-120b' is invalid and causes all API calls to fail with 'Invalid model name'. Trigger: Any call to the LiteLLM API with the default model.",
+  "trigger": "Any call to the LiteLLM API with the default model.",
+  "n_tokens_buggy": 32,
+  "n_tokens_fix": 71
+ },
+ {
+  "task_id": "B0354",
+  "language": "python",
+  "file": "field_validator.py",
+  "summary": "Validate non-text control types correctly",
+  "defect": "The function fails to recognize valid non-text control types when the type includes a suffix (e.g., 'select-one') Trigger: Input with a hyphenated type like 'select-one'",
+  "trigger": "Input with a hyphenated type like 'select-one'",
+  "n_tokens_buggy": 51,
+  "n_tokens_fix": 61
+ },
+ {
+  "task_id": "B0356",
+  "language": "python",
+  "file": "field_validator.py",
+  "summary": "Validate optional fields without blocking form submission",
+  "defect": "The function blocks form submission for empty optional fields, even when they are valid Trigger: Submitting a form with empty optional fields",
+  "trigger": "Submitting a form with empty optional fields",
+  "n_tokens_buggy": 29,
+  "n_tokens_fix": 83
+ },
+ {
+  "task_id": "B0383",
+  "language": "python",
+  "file": "test_field_extractor.py",
+  "summary": "Return canned label/option text for UI elements",
+  "defect": "The patched functions `_get_label` and `_get_option_text` do not intercept calls to `extract_field_inventory`, causing labels to return empty strings Trigger: When `extract_field_inventory` is called directly",
+  "trigger": "When `extract_field_inventory` is called directly",
+  "n_tokens_buggy": 33,
+  "n_tokens_fix": 138
+ },
+ {
+  "task_id": "B0389",
+  "language": "python",
+  "file": "b4-product-errors.py",
+  "summary": "Insert setError after console.error in error handling",
+  "defect": "The function fails to handle the singular 'product' case in the console.error message, causing the assertion to fail Trigger: When the console.error message contains 'product' instead of 'products'",
+  "trigger": "When the console.error message contains 'product' instead of 'products'",
+  "n_tokens_buggy": 77,
+  "n_tokens_fix": 87
+ },
+ {
+  "task_id": "B0393",
+  "language": "python",
+  "file": "redact.py",
+  "summary": "Redact secrets and PII while preserving allowlisted client names",
+  "defect": "The function fails to properly protect allowlisted client names during client-scrubbing, allowing them to be redacted by secret/PII detectors Trigger: When a client name matches a secret/PII pattern and is in keep_patterns",
+  "trigger": "When a client name matches a secret/PII pattern and is in keep_patterns",
+  "n_tokens_buggy": 146,
+  "n_tokens_fix": 167
+ },
+ {
+  "task_id": "B0395",
+  "language": "python",
+  "file": "opencode_telegram_bot.py",
+  "summary": "Run command with proper process isolation and cleanup",
+  "defect": "Process group cleanup fails to terminate child processes, leaving zombies and resource leaks Trigger: When subprocess spawns child processes and is killed",
+  "trigger": "When subprocess spawns child processes and is killed",
+  "n_tokens_buggy": 29,
+  "n_tokens_fix": 39
+ },
+ {
+  "task_id": "B0408",
+  "language": "python",
+  "file": "patched.py",
+  "summary": "Registers a Cloudflare text-gen model if alias is missing",
+  "defect": "Fails to validate `context_length` and defaults it to 32768, which may not match the actual model's capabilities Trigger: When `context_length` is None or invalid",
+  "trigger": "When `context_length` is None or invalid",
+  "n_tokens_buggy": 73,
+  "n_tokens_fix": 137
+ },
+ {
+  "task_id": "B0412",
+  "language": "python",
+  "file": "test_benchmark_search.py",
+  "summary": "Extracts a numeric limit from an error message",
+  "defect": "Fails to parse numeric limits in error messages that use non-standard markers Trigger: Error messages with markers like 'max_total_tokens=' or 'must not exceed '",
+  "trigger": "Error messages with markers like 'max_total_tokens=' or 'must not exceed '",
+  "n_tokens_buggy": 25,
+  "n_tokens_fix": 80
+ },
+ {
+  "task_id": "B0425",
+  "language": "javascript",
+  "file": "ledger.js",
+  "summary": "Parse blocker entries from text lines",
+  "defect": "Fails to handle empty or whitespace-only lines in the middle of a blocker entry Trigger: Input with empty lines between blocker fields",
+  "trigger": "Input with empty lines between blocker fields",
+  "n_tokens_buggy": 162,
+  "n_tokens_fix": 241
+ },
+ {
+  "task_id": "B0430",
+  "language": "python",
+  "file": "test_cooldown_policy.py",
+  "summary": "Compute seconds to next UTC midnight accurately",
+  "defect": "The function returns values below DAILY_COOLDOWN_FLOOR_SECONDS for inputs near midnight UTC Trigger: Inputs within 1 hour of midnight UTC",
+  "trigger": "Inputs within 1 hour of midnight UTC",
+  "n_tokens_buggy": 88,
+  "n_tokens_fix": 92
+ },
+ {
+  "task_id": "B0433",
+  "language": "python",
+  "file": "test_cooldown_policy.py",
+  "summary": "Compute seconds to next UTC midnight accurately.",
+  "defect": "The function does not enforce the daily cooldown floor for times near midnight or exactly at 00:00 UTC. Trigger: Inputs within 3600 seconds of midnight or exactly at 00:00:15 UTC.",
+  "trigger": "Inputs within 3600 seconds of midnight or exactly at 00:00:15 UTC.",
+  "n_tokens_buggy": 88,
+  "n_tokens_fix": 92
+ },
+ {
+  "task_id": "B0463",
+  "language": "python",
+  "file": "run_scrape.py",
+  "summary": "Scrape activity data for a range of years",
+  "defect": "The scraper fails silently on the first exception, losing all data for that year and subsequent years Trigger: When scrape_year() raises an exception during scraping",
+  "trigger": "When scrape_year() raises an exception during scraping",
+  "n_tokens_buggy": 52,
+  "n_tokens_fix": 147
+ },
+ {
+  "task_id": "B0477",
+  "language": "python",
+  "file": "download_takeout.py",
+  "summary": "Download Google Takeout archive from a page",
+  "defect": "The function fails to find download links when they exist, causing a false negative and SystemExit Trigger: When the page contains download links but they are not detected by the JS query",
+  "trigger": "When the page contains download links but they are not detected by the JS query",
+  "n_tokens_buggy": 85,
+  "n_tokens_fix": 73
+ },
+ {
+  "task_id": "B0478",
+  "language": "python",
+  "file": "download_takeout.py",
+  "summary": "Select and click the correct download link from Google Takeout",
+  "defect": "The CSS selector fails to match the actual href attribute due to missing leading slash and relative URL Trigger: When the href attribute is relative (e.g., 'takeout/download?j=...')",
+  "trigger": "When the href attribute is relative (e.g., 'takeout/download?j=...')",
+  "n_tokens_buggy": 57,
+  "n_tokens_fix": 186
+ },
+ {
+  "task_id": "B0496",
+  "language": "python",
+  "file": "verify_applications.py",
+  "summary": "Detects if a confirmation is a real post-submit page",
+  "defect": "The function returns True for any non-empty text, missing a check for positive confirmation phrases Trigger: A dict with non-empty text but no positive confirmation phrase",
+  "trigger": "A dict with non-empty text but no positive confirmation phrase",
+  "n_tokens_buggy": 82,
+  "n_tokens_fix": 321
+ },
+ {
+  "task_id": "B0497",
+  "language": "python",
+  "file": "voice_bridge.py",
+  "summary": "Convert audio to OGG/Opus format for Telegram voice notes",
+  "defect": "Fails to write Opus audio to a file with a non-OGG extension (e.g., .wav) due to ffmpeg's muxer auto-selection Trigger: Destination path has a non-OGG extension (e.g., .wav)",
+  "trigger": "Destination path has a non-OGG extension (e.g., .wav)",
+  "n_tokens_buggy": 56,
+  "n_tokens_fix": 98
+ },
+ {
+  "task_id": "B0498",
+  "language": "python",
+  "file": "test_full_flow.py",
+  "summary": "Submit job applications via a web form",
+  "defect": "The applier falsely reports SUBMITTED status when the target page has no form or submit button Trigger: A job page with no form or submit button",
+  "trigger": "A job page with no form or submit button",
+  "n_tokens_buggy": 48,
+  "n_tokens_fix": 153
+ },
+ {
+  "task_id": "B0047",
+  "language": "python",
+  "file": "test_screen_analyst.py",
+  "summary": "Analyze page screenshots and return analysis path",
+  "defect": "The screenshot mock does not create a real file, so analysis fails due to missing screenshot Trigger: When analysis expects a real screenshot file",
+  "trigger": "When analysis expects a real screenshot file",
+  "n_tokens_buggy": 43,
+  "n_tokens_fix": 43
+ },
+ {
+  "task_id": "B0096",
+  "language": "python",
+  "file": "run_tryon.py",
+  "summary": "Initialize CatVTONPipeline with VRAM-efficient offloading",
+  "defect": "Pipeline fails to offload components to CPU between steps, causing excessive GPU memory usage Trigger: When running on a GPU with limited VRAM (<4GB)",
+  "trigger": "When running on a GPU with limited VRAM (<4GB)",
+  "n_tokens_buggy": 49,
+  "n_tokens_fix": 60
+ },
+ {
+  "task_id": "B0124",
+  "language": "python",
+  "file": "freebuff_harness.py",
+  "summary": "Send a goal to the PTY after ensuring the system is idle",
+  "defect": "The function fails to handle cases where the system is not idle, logging a warning but not taking corrective action Trigger: When the system is not idle before sending a goal",
+  "trigger": "When the system is not idle before sending a goal",
+  "n_tokens_buggy": 27,
+  "n_tokens_fix": 42
+ },
+ {
+  "task_id": "B0287",
+  "language": "typescript",
+  "file": "orderStore.ts",
+  "summary": "Check for duplicate orders with idempotency key",
+  "defect": "The function does not verify if existing orders with the same idempotency key have identical request details, allowing silent overwrites Trigger: When an order with the same idempotency key but different product details is submitted",
+  "trigger": "When an order with the same idempotency key but different product details is submitted",
+  "n_tokens_buggy": 22,
+  "n_tokens_fix": 40
+ },
+ {
+  "task_id": "B0424",
+  "language": "javascript",
+  "file": "test-council-ledger.js",
+  "summary": "Test deliberation rounds and exposure budget capping",
+  "defect": "The test does not verify the actual deliberation rounds or exposure budget, only checks if asks > 0 Trigger: When discussing with maxRounds=4 and no explicit deliberationRounds",
+  "trigger": "When discussing with maxRounds=4 and no explicit deliberationRounds",
+  "n_tokens_buggy": 149,
+  "n_tokens_fix": 135
+ },
+ {
+  "task_id": "B0441",
+  "language": "python",
+  "file": "answer_capability_years.py",
+  "summary": "Returns a constant value for undated capabilities",
+  "defect": "The function returns a fixed value (ADJACENT_MAX_YEARS) for undated capabilities, ignoring actual career years Trigger: When the capability has no dated evidence in the corpus",
+  "trigger": "When the capability has no dated evidence in the corpus",
+  "n_tokens_buggy": 135,
+  "n_tokens_fix": 363
+ },
+ {
+  "task_id": "B0445",
+  "language": "python",
+  "file": "thumbnails.py",
+  "summary": "Generate a deterministic SVG fallback with escaped text",
+  "defect": "Unescaped text in SVG can break rendering or cause injection vulnerabilities Trigger: Title containing special XML characters like <, >, &, or \"",
+  "trigger": "Title containing special XML characters like <, >, &, or \"",
+  "n_tokens_buggy": 151,
+  "n_tokens_fix": 154
+ },
+ {
+  "task_id": "B0472",
+  "language": "python",
+  "file": "watch_takeout.py",
+  "summary": "Find the download URL from a Google Drive archive page",
+  "defect": "The regex pattern in the URL filter fails to match due to escaped backslashes collapsing in the string literal Trigger: When the archive page contains a download link with '/download?'",
+  "trigger": "When the archive page contains a download link with '/download?'",
+  "n_tokens_buggy": 82,
+  "n_tokens_fix": 120
+ },
+ {
+  "task_id": "B0485",
+  "language": "python",
+  "file": "server.py",
+  "summary": "Retrieve and return pane content from agent",
+  "defect": "The function fails to parse JSON output from `herdr` and falls back to a truncated JSON dump, losing structured data Trigger: When `herdr` returns a non-JSON terminal snapshot",
+  "trigger": "When `herdr` returns a non-JSON terminal snapshot",
+  "n_tokens_buggy": 58,
+  "n_tokens_fix": 46
+ },
+ {
+  "task_id": "B0109",
+  "language": "python",
+  "file": "site_audit.py",
+  "summary": "Opens a new tab for site auditing",
+  "defect": "Fails to handle tab creation errors, causing the function to proceed with a None page object Trigger: When win.new_tab() raises an exception",
+  "trigger": "When win.new_tab() raises an exception",
+  "n_tokens_buggy": 24,
+  "n_tokens_fix": 56
+ },
+ {
+  "task_id": "B0384",
+  "language": "python",
+  "file": "b4-product-errors.py",
+  "summary": "Inserts an error message after console.error in a catch block",
+  "defect": "The function incorrectly reconstructs the entire catch block, losing any existing code after the console.error line Trigger: When the catch block contains code after the console.error line",
+  "trigger": "When the catch block contains code after the console.error line",
+  "n_tokens_buggy": 59,
+  "n_tokens_fix": 77
+ },
+ {
+  "task_id": "B0410",
+  "language": "python",
+  "file": "patched.py",
+  "summary": "Revalidate Cloudflare entries against provider docs",
+  "defect": "The function does not account for Cloudflare entries requiring paid plans, which are unroutable and churn the catalog Trigger: Cloudflare entries with requires_paid_plan=True",
+  "trigger": "Cloudflare entries with requires_paid_plan=True",
+  "n_tokens_buggy": 27,
+  "n_tokens_fix": 106
+ },
+ {
+  "task_id": "B0366",
+  "language": "python",
+  "file": "rag_resume_extractor.py",
+  "summary": "Returns resume data with computed experience years",
+  "defect": "The years-of-experience field is hardcoded to '6+' instead of being dynamically calculated from employment intervals Trigger: When the function is called with any job title",
+  "trigger": "When the function is called with any job title",
+  "n_tokens_buggy": 130,
+  "n_tokens_fix": 237
+ },
+ {
+  "task_id": "B0460",
+  "language": "python",
+  "file": "conftest.py",
+  "summary": "Prevent tests from making live network requests to image generator",
+  "defect": "The test suite makes live network requests to image.pollinations.ai during thumbnail generation, causing hangs due to timeouts and retries Trigger: Any test that calls BlogWriter.generate() with a real thumbnail",
+  "trigger": "Any test that calls BlogWriter.generate() with a real thumbnail",
+  "n_tokens_buggy": 53,
+  "n_tokens_fix": 131
+ },
+ {
+  "task_id": "B0175",
+  "language": "python",
+  "file": "test_mcp_config.py",
+  "summary": "Verify developer-council server timeout configuration",
+  "defect": "The test fails if the timeout field is missing, using a KeyError instead of a default value Trigger: Missing timeout field in the configuration",
+  "trigger": "Missing timeout field in the configuration",
+  "n_tokens_buggy": 115,
+  "n_tokens_fix": 172
+ },
+ {
+  "task_id": "B0378",
+  "language": "python",
+  "file": "test_group_identity.py",
+  "summary": "Ensure group key uses group fingerprint, not bare type:name",
+  "defect": "The function incorrectly allows the group key to fall back to a bare `type:name` format, which is the original merge bug Trigger: When the group key is formatted as `f'{type_attr}:{name}'`",
+  "trigger": "When the group key is formatted as `f'{type_attr}:{name}'`",
+  "n_tokens_buggy": 98,
+  "n_tokens_fix": 131
+ },
+ {
+  "task_id": "B0380",
+  "language": "python",
+  "file": "test_group_identity.py",
+  "summary": "Verify group key uses group fingerprint, not bare type:name",
+  "defect": "The function fails to verify that all key branches use group fingerprint; it only checks one line and misses branches with bare type:name keys Trigger: When multiple key branches exist, some using bare type:name keys",
+  "trigger": "When multiple key branches exist, some using bare type:name keys",
+  "n_tokens_buggy": 131,
+  "n_tokens_fix": 142
+ },
+ {
+  "task_id": "B0499",
+  "language": "python",
+  "file": "call_agent.py",
+  "summary": "Handle stderr collection with timeout and proper encoding",
+  "defect": "The function fails to properly decode stderr when it's not UTF-8 or times out during collection Trigger: Non-UTF-8 stderr or slow stderr collection",
+  "trigger": "Non-UTF-8 stderr or slow stderr collection",
+  "n_tokens_buggy": 63,
+  "n_tokens_fix": 59
+ },
+ {
+  "task_id": "B0171",
+  "language": "javascript",
+  "file": "playwright-adapter.js",
+  "summary": "Opens a session with a browser or CDP client",
+  "defect": "The function may hang indefinitely when connecting to Playwright over CDP Trigger: When the remote browser is unresponsive or unreachable",
+  "trigger": "When the remote browser is unresponsive or unreachable",
+  "n_tokens_buggy": 90,
+  "n_tokens_fix": 142
+ },
+ {
+  "task_id": "B0009",
+  "language": "python",
+  "file": "gpu_power_monitor.py",
+  "summary": "Retrieve GPU metrics from nvidia-smi in structured format",
+  "defect": "The function discards the original field names, using only the last component (e.g., 'draw' instead of 'power.draw') as keys in the output dictionary Trigger: Any call to the function with valid nvidia-smi output",
+  "trigger": "Any call to the function with valid nvidia-smi output",
+  "n_tokens_buggy": 68,
+  "n_tokens_fix": 125
+ },
+ {
+  "task_id": "B0169",
+  "language": "javascript",
+  "file": "playwright-adapter.js",
+  "summary": "PlaywrightSession should clean up resources on construction",
+  "defect": "The constructor does not clean up resources when a lease and targetId are provided Trigger: When constructed with a lease and targetId",
+  "trigger": "When constructed with a lease and targetId",
+  "n_tokens_buggy": 158,
+  "n_tokens_fix": 176
+ },
+ {
+  "task_id": "B0426",
+  "language": "javascript",
+  "file": "test-council-ledger.js",
+  "summary": "Discussion rounds should respect maxRounds limit",
+  "defect": "The function makes unbounded calls to askModel when maxRounds is 0, violating the configuration Trigger: When maxRounds is 0 and seatReaskAttempts is 1",
+  "trigger": "When maxRounds is 0 and seatReaskAttempts is 1",
+  "n_tokens_buggy": 67,
+  "n_tokens_fix": 77
+ },
+ {
+  "task_id": "B0152",
+  "language": "python",
+  "file": "stealth_e2e.py",
+  "summary": "Click tiles and verify reCAPTCHA completion",
+  "defect": "The verify button and anchor locators use incorrect frame references, causing verification to fail Trigger: When reCAPTCHA verification is attempted",
+  "trigger": "When reCAPTCHA verification is attempted",
+  "n_tokens_buggy": 138,
+  "n_tokens_fix": 138
+ },
+ {
+  "task_id": "B0233",
+  "language": "python",
+  "file": "create_backup_3f.py",
+  "summary": "Generate restore commands for all backup files",
+  "defect": "The function only generates restore commands for files in the backup, missing deletions for files in config['targets'] not present in the backup Trigger: When config['targets'] contains paths not in the backup",
+  "trigger": "When config['targets'] contains paths not in the backup",
+  "n_tokens_buggy": 25,
+  "n_tokens_fix": 43
+ },
+ {
+  "task_id": "B0311",
+  "language": "python",
+  "file": "remote_transaction_3o.py",
+  "summary": "List open files matching specific paths in /proc",
+  "defect": "The function fails to process file descriptors in /proc/<pid>/fd due to missing iteration over descriptors Trigger: When /proc/<pid>/fd contains multiple file descriptors",
+  "trigger": "When /proc/<pid>/fd contains multiple file descriptors",
+  "n_tokens_buggy": 56,
+  "n_tokens_fix": 53
+ },
+ {
+  "task_id": "B0317",
+  "language": "python",
+  "file": "remote_transaction_3o.py",
+  "summary": "Detect conflicts in build test outputs",
+  "defect": "The function fails to detect conflicts when expected markers are missing from output Trigger: When output lacks expected markers for a test",
+  "trigger": "When output lacks expected markers for a test",
+  "n_tokens_buggy": 58,
+  "n_tokens_fix": 70
+ },
+ {
+  "task_id": "B0326",
+  "language": "python",
+  "file": "researcher.py",
+  "summary": "Capture and process OCR text from screenshots for listings",
+  "defect": "The function calls `capture_screen` twice with the same path, overwriting the first screenshot before OCR processing Trigger: When processing listings with the same `sid` in rapid succession",
+  "trigger": "When processing listings with the same `sid` in rapid succession",
+  "n_tokens_buggy": 66,
+  "n_tokens_fix": 60
+ },
+ {
+  "task_id": "B0421",
+  "language": "python",
+  "file": "soundd.py",
+  "summary": "Adjust volume based on sound pressure level",
+  "defect": "Volume is not updated when no alert is active, causing volume to remain unchanged Trigger: When no alert is active and sound pressure changes",
+  "trigger": "When no alert is active and sound pressure changes",
+  "n_tokens_buggy": 55,
+  "n_tokens_fix": 27
+ },
+ {
+  "task_id": "B0313",
+  "language": "python",
+  "file": "deploy_3o.py",
+  "summary": "Verify remote transaction readiness before proceeding",
+  "defect": "The function fails to handle 'failure' stage correctly, raising an error only for 'ready_for_live' mismatch Trigger: When the stage is 'failure' but not 'ready_for_live'",
+  "trigger": "When the stage is 'failure' but not 'ready_for_live'",
+  "n_tokens_buggy": 29,
+  "n_tokens_fix": 51
+ },
+ {
+  "task_id": "B0247",
+  "language": "python",
+  "file": "verify_live_3f.py",
+  "summary": "Extract PM2 process info for frontend and backend",
+  "defect": "The function fails to store the return code of the PM2 command in the output, losing error status information Trigger: When the PM2 command fails with a non-zero exit code",
+  "trigger": "When the PM2 command fails with a non-zero exit code",
+  "n_tokens_buggy": 15,
+  "n_tokens_fix": 16
+ },
+ {
+  "task_id": "B0184",
+  "language": "javascript",
+  "file": "test-council-resilience.js",
+  "summary": "Test resilience of council.discuss() to failed seats",
+  "defect": "council.discuss() does not track failed seats in discussion.failedSeats Trigger: When all seats fail or login-required strings are returned",
+  "trigger": "When all seats fail or login-required strings are returned",
+  "n_tokens_buggy": 166,
+  "n_tokens_fix": 205
+ },
+ {
+  "task_id": "B0420",
+  "language": "python",
+  "file": "soundd.py",
+  "summary": "Freeze volume during alerts to avoid mic feedback",
+  "defect": "Volume is not frozen during alerts, allowing mic feedback to increase volume Trigger: When an alert is active and sound pressure is updated",
+  "trigger": "When an alert is active and sound pressure is updated",
+  "n_tokens_buggy": 21,
+  "n_tokens_fix": 55
+ },
+ {
+  "task_id": "B0103",
+  "language": "python",
+  "file": "human_input.py",
+  "summary": "Simulate human-like interaction with form elements",
+  "defect": "Fails to verify element visibility/clickability before clicking, leading to unreliable interactions Trigger: When element is covered by overlay or off-viewport",
+  "trigger": "When element is covered by overlay or off-viewport",
+  "n_tokens_buggy": 127,
+  "n_tokens_fix": 254
+ },
+ {
+  "task_id": "B0130",
+  "language": "python",
+  "file": "daemon.py",
+  "summary": "Launch a persistent browser context with stealth features",
+  "defect": "The browser context lacks stealth features to evade automation detection, making it detectable by websites like Indeed or Cloudflare Trigger: Websites checking for automation (e.g., navigator.webdriver)",
+  "trigger": "Websites checking for automation (e.g., navigator.webdriver)",
+  "n_tokens_buggy": 40,
+  "n_tokens_fix": 187
+ },
+ {
+  "task_id": "B0137",
+  "language": "javascript",
+  "file": "auto-accept.js",
+  "summary": "Selects the first 'always allow' option instead of the last",
+  "defect": "The function selects the first matching 'always allow' radio button instead of the last one, which is the correct target for the Submit handler Trigger: When multiple 'always allow' options are present in the DOM",
+  "trigger": "When multiple 'always allow' options are present in the DOM",
+  "n_tokens_buggy": 179,
+  "n_tokens_fix": 230
+ },
+ {
+  "task_id": "B0403",
+  "language": "javascript",
+  "file": "web-chat-browser.js",
+  "summary": "Determine if the current text is a baseline or in progress",
+  "defect": "The function incorrectly returns true for `isBaseline` when `current` matches `baselineText` even if `baselineKey` is not set Trigger: When `current` equals `baselineText` but `baselineKey` is falsy",
+  "trigger": "When `current` equals `baselineText` but `baselineKey` is falsy",
+  "n_tokens_buggy": 38,
+  "n_tokens_fix": 148
+ },
+ {
+  "task_id": "B0132",
+  "language": "python",
+  "file": "daemon.py",
+  "summary": "Stealth JS modifies browser navigator properties to evade detection",
+  "defect": "The code incorrectly overwrites existing chrome object properties instead of preserving them Trigger: When window.chrome already exists with non-empty properties",
+  "trigger": "When window.chrome already exists with non-empty properties",
+  "n_tokens_buggy": 63,
+  "n_tokens_fix": 85
+ },
+ {
+  "task_id": "B0327",
+  "language": "python",
+  "file": "researcher.py",
+  "summary": "Logs messages with timestamps to both console and file",
+  "defect": "The function prints the same message twice: once to console and once to file, without deduplication Trigger: Any call to log() with a non-empty message",
+  "trigger": "Any call to log() with a non-empty message",
+  "n_tokens_buggy": 24,
+  "n_tokens_fix": 22
+ },
+ {
+  "task_id": "B0309",
+  "language": "python",
+  "file": "deploy_3o.py",
+  "summary": "Collects records from nested dictionaries into a result map.",
+  "defect": "Fails to process nested dictionaries that are not direct values of the input dict, missing records that should be included. Trigger: Input with nested dictionaries not directly under the top-level keys.",
+  "trigger": "Input with nested dictionaries not directly under the top-level keys.",
+  "n_tokens_buggy": 35,
+  "n_tokens_fix": 58
+ },
+ {
+  "task_id": "B0183",
+  "language": "javascript",
+  "file": "test-council-resilience.js",
+  "summary": "Discussion should handle failed seats gracefully",
+  "defect": "The function fails to propagate errors from failed seats during discussion Trigger: When a seat fails during discussion",
+  "trigger": "When a seat fails during discussion",
+  "n_tokens_buggy": 57,
+  "n_tokens_fix": 75
+ },
+ {
+  "task_id": "B0077",
+  "language": "python",
+  "file": "window_broker.py",
+  "summary": "Opens a new browser tab and returns its target ID",
+  "defect": "Fails to verify the correct window ownership after creating a target, leading to race conditions Trigger: When the target is created but the window focus is not properly settled",
+  "trigger": "When the target is created but the window focus is not properly settled",
+  "n_tokens_buggy": 57,
+  "n_tokens_fix": 89
+ },
+ {
+  "task_id": "B0078",
+  "language": "python",
+  "file": "window_broker.py",
+  "summary": "Opens a new tab in a specific browser window",
+  "defect": "Fails to ensure the target window is focused before attaching, causing tabs to open in the wrong window due to race conditions Trigger: When the window manager or browser focus is not settled before tab creation",
+  "trigger": "When the window manager or browser focus is not settled before tab creation",
+  "n_tokens_buggy": 89,
+  "n_tokens_fix": 120
+ },
+ {
+  "task_id": "B0087",
+  "language": "python",
+  "file": "agent.py",
+  "summary": "Retrieve target ID of a page from cache or CDP session",
+  "defect": "Fails to handle stale CDP sessions by not catching exceptions during target info retrieval Trigger: When the CDP session becomes stale during target info lookup",
+  "trigger": "When the CDP session becomes stale during target info lookup",
+  "n_tokens_buggy": 117,
+  "n_tokens_fix": 136
+ },
+ {
+  "task_id": "B0100",
+  "language": "python",
+  "file": "indeed_applier_playwright.py",
+  "summary": "Submit Workday sign-in form and wait for completion.",
+  "defect": "The function waits a fixed 5s after submission, which may be insufficient for the sign-in process to complete, causing false positives when checking for a login wall. Trigger: When the sign-in process takes longer than 5s to complete.",
+  "trigger": "When the sign-in process takes longer than 5s to complete.",
+  "n_tokens_buggy": 13,
+  "n_tokens_fix": 43
+ },
+ {
+  "task_id": "B0138",
+  "language": "javascript",
+  "file": "auto-accept.js",
+  "summary": "Re-selects a radio button in a React-controlled form",
+  "defect": "Fails to update React's controlled state when clicking the label, causing stale state and preventing form submission Trigger: Clicking the radio button's label instead of the input itself",
+  "trigger": "Clicking the radio button's label instead of the input itself",
+  "n_tokens_buggy": 101,
+  "n_tokens_fix": 128
+ },
+ {
+  "task_id": "B0398",
+  "language": "javascript",
+  "file": "council.js",
+  "summary": "Generate an implementation plan unless deadline reached",
+  "defect": "The function incorrectly returns a skipped message when the deadline is NOT reached Trigger: When checkDeadline() returns false",
+  "trigger": "When checkDeadline() returns false",
+  "n_tokens_buggy": 27,
+  "n_tokens_fix": 27
+ },
+ {
+  "task_id": "B0297",
+  "language": "python",
+  "file": "live_browser_verify_3n.py",
+  "summary": "Wait for the root element to be ready and populated",
+  "defect": "The function fails to wait for the root element's children to be present when the DOM is ready but the root is empty Trigger: When the root element exists but has no children",
+  "trigger": "When the root element exists but has no children",
+  "n_tokens_buggy": 9,
+  "n_tokens_fix": 15
+ },
+ {
+  "task_id": "B0401",
+  "language": "javascript",
+  "file": "mcp-server.js",
+  "summary": "Handle errors and cleanup resources in MCPCouncil",
+  "defect": "The function does not stop the heartbeat on error, leaking resources Trigger: When an error occurs during execution",
+  "trigger": "When an error occurs during execution",
+  "n_tokens_buggy": 24,
+  "n_tokens_fix": 28
+ },
+ {
+  "task_id": "B0180",
+  "language": "javascript",
+  "file": "council.js",
+  "summary": "Normalize model responses before returning them",
+  "defect": "Model responses are returned unprocessed, missing normalization that standardizes output format Trigger: All model responses, regardless of content or model type",
+  "trigger": "All model responses, regardless of content or model type",
+  "n_tokens_buggy": 151,
+  "n_tokens_fix": 159
+ },
+ {
+  "task_id": "B0079",
+  "language": "python",
+  "file": "test_window_broker.py",
+  "summary": "Acquire windows from pools with capacity and health checks",
+  "defect": "The test fails to verify spillover to a second healthy pool when the first is full, instead only checking the dead pool is skipped Trigger: When the first pool is full and a second healthy pool exists",
+  "trigger": "When the first pool is full and a second healthy pool exists",
+  "n_tokens_buggy": 71,
+  "n_tokens_fix": 127
+ },
+ {
+  "task_id": "B0086",
+  "language": "python",
+  "file": "agent.py",
+  "summary": "Retrieve Playwright Page for a given target ID",
+  "defect": "The function incorrectly registers foreign pages into its own tab set when scanning for a target ID Trigger: When the target ID matches a page from another harness or user tab",
+  "trigger": "When the target ID matches a page from another harness or user tab",
+  "n_tokens_buggy": 79,
+  "n_tokens_fix": 117
+ },
+ {
+  "task_id": "B0073",
+  "language": "python",
+  "file": "indeed_applier_playwright.py",
+  "summary": "Search Indeed jobs with Cloudflare handling",
+  "defect": "The function incorrectly raises a hard-block error before Cloudflare's challenge is resolved, misinterpreting a solvable interstitial as a permanent block Trigger: When a Cloudflare challenge is present but not yet solved",
+  "trigger": "When a Cloudflare challenge is present but not yet solved",
+  "n_tokens_buggy": 74,
+  "n_tokens_fix": 116
+ },
+ {
+  "task_id": "B0164",
+  "language": "javascript",
+  "file": "web-chat-browser.js",
+  "summary": "Establish a CDP connection to a browser tab",
+  "defect": "The CDP connection uses the raw lease.cdpUrl without parsing host and port, causing connection failures if the URL is not in the expected format Trigger: When lease.cdpUrl is not in the format 'host:port'",
+  "trigger": "When lease.cdpUrl is not in the format 'host:port'",
+  "n_tokens_buggy": 30,
+  "n_tokens_fix": 34
+ },
+ {
+  "task_id": "B0081",
+  "language": "python",
+  "file": "studio_auth_e2e.py",
+  "summary": "Detects selected size button by its styling classes",
+  "defect": "Fails to detect selected size when button has 'border-gray-300' class instead of expected 'border-blue' or 'bg-blue' Trigger: When size button has 'border-gray-300' class",
+  "trigger": "When size button has 'border-gray-300' class",
+  "n_tokens_buggy": 23,
+  "n_tokens_fix": 31
+ },
+ {
+  "task_id": "B0167",
+  "language": "javascript",
+  "file": "deepcraft-council-gate.js",
+  "summary": "Determine if council output indicates success",
+  "defect": "The function incorrectly returns true for short outputs containing 'Developer Council Discussion' Trigger: Output with 'Developer Council Discussion' and length \u2264 100",
+  "trigger": "Output with 'Developer Council Discussion' and length \u2264 100",
+  "n_tokens_buggy": 25,
+  "n_tokens_fix": 31
+ },
+ {
+  "task_id": "B0154",
+  "language": "python",
+  "file": "inspect_harness.py",
+  "summary": "Track page load and form field detection separately",
+  "defect": "The function only emits 'after_goto' snapshot after page analysis, missing the initial page load event Trigger: When calling _analyze_page without prior form interaction",
+  "trigger": "When calling _analyze_page without prior form interaction",
+  "n_tokens_buggy": 52,
+  "n_tokens_fix": 105
+ }
+]

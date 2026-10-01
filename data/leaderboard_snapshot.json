@@ -1,0 +1,65 @@
+{
+ "generated": "2026-09-29",
+ "tasks_scored": 25,
+ "combined": [
+  {
+   "model": "qwen-3.8-27b",
+   "score": 0.7315,
+   "ci": [
+    0.6801,
+    0.7813
+   ],
+   "errors": "0/25"
+  },
+  {
+   "model": "codestral",
+   "score": 0.7259,
+   "ci": [
+    0.6757,
+    0.7776
+   ],
+   "errors": "0/25"
+  },
+  {
+   "model": "gpt-oss-20b-ollama",
+   "score": 0.6383,
+   "ci": [
+    0.5285,
+    0.7529
+   ],
+   "errors": "0/25"
+  },
+  {
+   "model": "copilot-gpt56",
+   "score": 0.5652,
+   "ci": [
+    0.5289,
+    0.6041
+   ],
+   "errors": "0/25"
+  },
+  {
+   "model": "agnes-2.0-flash",
+   "score": 0.008,
+   "ci": [
+    0.0,
+    0.024
+   ],
+   "errors": "25/25"
+  }
+ ],
+ "diagnose": {
+  "qwen-3.8-27b": 0.732,
+  "codestral": 0.7176,
+  "gpt-oss-20b-ollama": 0.552,
+  "copilot-gpt56": 0.2936,
+  "agnes-2.0-flash": 0.016
+ },
+ "repair": {
+  "copilot-gpt56": 0.8367,
+  "codestral": 0.7342,
+  "qwen-3.8-27b": 0.7309,
+  "gpt-oss-20b-ollama": 0.7247,
+  "agnes-2.0-flash": 0.0
+ }
+}
