@@ -298,6 +298,33 @@ it is a **memorization probe**, so by design it does not join the headline aggre
 currently-untested hermetic modules in the same codebases. Widening is authored rather than
 organic, which is a weaker claim about real-world debugging, so it is not done silently.
 
+## Gate status (2026-10-01)
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Oracle validation | **PASS** | 8 real tasks, known-good mean 1.0, known-bad 0.0, monotone |
+| Noise floor | **PASS** | 36 trials / 12 cells / 6 tasks, max within-cell spread 0.0 |
+| Leakage (feedback) | **PASS** | junit node-ID channel audited clean against 6 canaries |
+| Leakage (uid boundary) | **NOT RUN** | needs root; 2 tests skip. Audit hook + Node `--permission` verified separately |
+| Task admission | **PASS** | every panel task: buggy 0.0, fixed 1.0, oracle reproduces |
+| Panel drift | **PASS** | all 15 bug_ids regenerate from current source |
+| Contamination / memorisation | **PARTIAL** | public/private exposure measured per repo; no model probed yet |
+| Model-version pinning | record-only | today's snapshot; the user's cron covers future churn |
+
+Two gates remain genuinely open: **memorisation** (needs live model calls) and the **uid
+boundary** (needs root or the container). Neither blocks scoring; both must be reported as
+unmeasured rather than assumed.
+
+## What is built
+
+`feedback.py` leak-free channel · `reconstruct.py` fail-closed replay · `gitmine.py`
+fix-commit triples · `mutants.py` AST mutant generator · `sandbox.py` hermetic runner ·
+`scoring.py` per-bug credit + oracle gate · `panel.py` equal-weight selection + manifest ·
+`determinism.py` noise floor · `stats.py` pre-registered analysis · `isolation.py` read
+denial · `docker-compose.yml` two containers.
+
+**275 tests pass, 2 skipped** (root-only). End-to-end pipeline proven on the real panel.
+
 ## Panel composition (user chose Option A)
 
 `AutoPilot-Jobs` is the **backbone** — private, 88 fix commits, and it already ships
