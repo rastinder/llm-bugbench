@@ -245,6 +245,30 @@ production code whose oracles are integration tests. Panel supply must therefore
 `marketplace-monitor` (39 candidate files, public) stays a memorization probe only.
 Equal per-codebase weighting is retained and now essential, since supply is uneven.
 
+### MEASURED: hermetic test supply per codebase
+
+`AutoPilot-Jobs` contributes **0 runnable hermetic tests** — all 3 of its collecting
+subprojects collect zero tests, and 9 of 12 fail collection outright on
+`playwright`/`pydantic_settings`. Its oracles are integration tests that drive real
+browsers and LLM routers, which is correct for production and disqualifying for a hermetic
+benchmark. Option A's premise (AutoPilot-Jobs as backbone) is therefore **not supported by
+measurement**, and the panel must be built from the codebases that do have hermetic tests.
+
+| Codebase | Hermetic tests | Exposure | Panel eligible |
+|---|---:|---|---|
+| `marketplace-monitor` | 312 | **public** | memorization **probe only**, never headline scoring |
+| `opencode-telegram-bot` | 198 (4 clean files) | private | **yes** |
+| `cloakbrowser` | 29 (1 clean file of 4) | private | **yes** |
+| `copilot-model-audit` | 22 | private | **yes** |
+| `.fix-backend` | 10 | private | **yes** |
+| `AutoPilot-Jobs` | 0 | private | no hermetic tests |
+| `whatsedit-local` / `copilot-tool-layer` / `copilot-fix` / `llm-bugbench` | 0 | private | no hermetic tests |
+
+**Private hermetic supply: 259 tests across 4 codebases.** Equal per-codebase weighting is
+now mandatory rather than cosmetic — supply is genuinely uneven, and 3 codebases would
+otherwise be structurally absent from the panel. Public-exposure tasks stay in the panel
+only as memorization probes, which is what makes the contamination gate measurable.
+
 ## Panel composition (user chose Option A)
 
 `AutoPilot-Jobs` is the **backbone** — private, 88 fix commits, and it already ships
