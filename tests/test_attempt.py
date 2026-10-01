@@ -160,12 +160,18 @@ class TestTransport:
         def fake(req, **k):
             captured["body"] = json.loads(req.data)
             return R()
+
+        # Captured BEFORE patching and restored from that binding. Restoring from
+        # `urllib.request.urlopen` inside the finally block reads the *already patched*
+        # attribute -- ur is urllib.request -- so the fake leaked and broke every later
+        # test in the suite that makes a real HTTP call.
         import urllib.request as ur
+        original = ur.urlopen
         ur.urlopen = fake
         try:
             call_openai("http://x/v1", "m", [{"role": "user", "content": "hi"}])
         finally:
-            ur.urlopen = urllib.request.urlopen
+            ur.urlopen = original
         assert captured["body"]["temperature"] == 0.0
 
 
