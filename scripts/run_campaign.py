@@ -130,6 +130,7 @@ def run_model(base_url: str, model: str, api_key: str | None, tasks: list[dict],
         rows.append(row)
         print(f"  [{i}/{len(ordered)}] {task['task_id'][:44]:44s} "
               f"{att.outcome:16s} score={fs.per_bug_score:.2f} {att.latency_s:5.1f}s", flush=True)
+        (work.parent / "last_reply.txt").write_text(att.reply or "")
         shutil.rmtree(work, ignore_errors=True)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)

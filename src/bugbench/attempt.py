@@ -119,24 +119,67 @@ class Attempt:
 # patch extraction
 # ---------------------------------------------------------------------------
 
-_FENCE = re.compile(r"```(?:diff|patch)?\s*\n(.*?)```", re.S)
+#: Fence styles actually observed from the cohort: ```diff blocks, and bare ``` blocks.
+_FENCE = re.compile(r"```[a-zA-Z]*\s*\n(.*?)```", re.S)
+
+#: Lines a model appends after its diff. A closing ``` alone is harmless, but markers like
+#: *** or === are not diff syntax and must not reach the applier, where a stray line would
+#: be parsed as a context line and misalign every hunk after it.
+_TRAILING_JUNK = re.compile(r"^\s*(?:\*{3,}|={3,}|#{3,}|`{3,})\s*$")
+
+
+#: Emitted by agent-tuned models that expect a tool interface rather than a text diff.
+#: Observed from the local 9B: instead of a diff it replied with
+#: ``<tool_call><function=bash><parameter=command>sed -n ...`` and no diff at all.
+#: Scraping diff-looking lines out of that yields a patch with no file header, which would
+#: be applied to nothing and recorded as an attempt. Detecting it lets the outcome say
+#: "wanted tools" instead of the much vaguer "invalid response".
+_TOOL_CALL = re.compile(r"<\s*tool_call|<\s*function=|recipient_name|^\s*<tool_call>", re.M)
+
+
+def wants_tools(reply: str) -> bool:
+    return bool(_TOOL_CALL.search(reply or ""))
 
 
 def extract_patch(reply: str) -> str:
     """Pull a unified diff out of a model reply.
 
-    Models wrap diffs in fences, prefix them with chatter, or emit them bare. Only a
-    well-formed ``diff --git`` / ``--- a/`` + ``+++ b/`` pair counts, so a reply that
-    merely discusses a change cannot be mistaken for one.
+    Models wrap diffs in fences, prefix them with chatter, append a stray ``***`` terminator,
+    or emit them bare. All four were observed in this cohort, and the fenced form was being
+    dropped entirely -- which recorded correct fixes as ``invalid_response``.
+
+    A diff is only accepted if it carries a usable ``--- a/<path>`` / ``+++ b/<path>`` pair.
+    Earlier this accepted any hunk-looking text, which meant a reply with hunks but no file
+    header was classified ``scored`` and then silently applied to nothing -- a false positive
+    that would have shown up as a model producing an edit it never made.
     """
     if not reply:
         return ""
-    for candidate in [m.strip() for m in _FENCE.findall(reply)] + [reply]:
-        if ("--- " in candidate and "+++ " in candidate) or candidate.startswith("diff "):
-            lines = [ln for ln in candidate.splitlines()
-                     if ln.startswith(("--- ", "+++ ", "@@", "+", "-", "diff ", "index "))]
-            if len(lines) >= 3:
-                return "\n".join(lines)
+    candidates = [m.strip() for m in _FENCE.findall(reply)]
+    candidates.append(reply)
+
+    for candidate in candidates:
+        # Tolerate a leading space before the header: models indent, and ` --- a/x.py`
+        # is the header, not a context line.
+        lines = []
+        for raw in candidate.splitlines():
+            line = raw.lstrip() if raw.lstrip().startswith(("--- ", "+++ ", "diff ", "index ")) else raw
+            if line.startswith(("--- ", "+++ ", "@@", "+", "-", "diff ", "index ")) \
+                    and not _TRAILING_JUNK.match(line):
+                lines.append(line)
+        if len(lines) < 3:
+            continue
+        # Require a real file header pair, in order.
+        try:
+            minus = next(i for i, ln in enumerate(lines) if ln.startswith("--- "))
+            plus = next(i for i, ln in enumerate(lines) if ln.startswith("+++ "))
+        except StopIteration:
+            continue
+        if plus < minus:
+            continue
+        if lines[minus][4:].strip().lstrip("ab/") != lines[plus][4:].strip().lstrip("ab/"):
+            continue
+        return "\n".join(lines)
     return ""
 
 
@@ -147,6 +190,10 @@ def classify(reply: str, patch: str) -> tuple[str, bool]:
         return "invalid_response", False
     if any(m in low for m in REFUSAL_MARKERS):
         return "refused", False
+    if not patch and wants_tools(reply):
+        # Its own outcome rather than a generic non-answer: the model is telling us it
+        # needs a tool interface, which is actionable information about the model.
+        return "needs_tools", False
     if not patch:
         if any(m in low for m in NO_EDIT_MARKERS):
             # Declining to edit is not the same as failing to try, and averaging the two

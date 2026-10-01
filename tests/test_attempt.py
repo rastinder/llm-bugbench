@@ -289,3 +289,75 @@ class TestRetryableTransport:
                              {"m.py": "x=1\n"}, tmp_path, retries=2)
         assert calls["n"] == 3, "should retry a retryable failure"
         assert att.detail["transport_attempts"] == 3
+
+
+class TestPatchExtractionRealShapes:
+    """Shapes actually produced by the cohort, not shapes imagined for it."""
+
+    FENCED = (
+        " --- a/check_model_menu.py\n+++ b/check_model_menu.py\n"
+        "@@ -123,7 +123,7 @@\n-        return 0\n+        return None\n***\n"
+    )
+
+    def test_bare_fence_block_is_extracted(self):
+        """Observed: the local model wraps its diff in ``` and appends ***."""
+        from bugbench.attempt import extract_patch
+        reply = "```diff\n" + self.FENCED + "```\n"
+        assert "return None" in extract_patch(reply)
+
+    def test_unterminated_fence_is_still_extracted(self):
+        from bugbench.attempt import extract_patch
+        reply = "```\n" + self.FENCED
+        assert "return None" in extract_patch(reply)
+
+    def test_trailing_marker_is_stripped(self):
+        """A stray *** would be read as a context line and misalign later hunks."""
+        from bugbench.attempt import extract_patch
+        out = extract_patch(self.FENCED)
+        assert "***" not in out.splitlines()
+
+    def test_multiple_hunks_survive_extraction(self):
+        from bugbench.attempt import extract_patch
+        two = self.FENCED + "@@ -152,7 +152,7 @@\n-        a = 1\n+        a = 2\n"
+        out = extract_patch(two)
+        # Count hunk-header LINES, not the "@@" substring: "@@ -1,2 +1,2 @@" contains
+        # two occurrences, so a substring count reports 4 for two hunks.
+        assert len([ln for ln in out.splitlines() if ln.startswith("@@")]) == 2, out
+
+    def test_hunks_without_a_file_header_are_rejected(self):
+        """Regression: hunks alone were once accepted and classified `scored`, then
+        silently applied to nothing -- a model credited with an edit it never made."""
+        from bugbench.attempt import extract_patch
+        assert extract_patch("@@ -1,2 +1,2 @@\n-a\n+b\n") == ""
+
+    def test_mismatched_header_paths_are_rejected(self):
+        from bugbench.attempt import extract_patch
+        assert extract_patch("--- a/one.py\n+++ b/two.py\n@@ -1 +1 @@\n-a\n+b\n") == ""
+
+
+class TestToolCallReplies:
+    """Observed from the local 9B: it replied with tool-call XML instead of a diff."""
+
+    REPLY = ("<tool_call><function=bash><parameter=command>sed -n 75,100p bench_stt.py"
+             " 2>/dev/null || echo missing</parameter></function></tool_call>")
+
+    def test_tool_call_reply_is_recognised(self):
+        from bugbench.attempt import wants_tools
+        assert wants_tools(self.REPLY)
+
+    def test_a_plain_diff_is_not_mistaken_for_a_tool_call(self):
+        from bugbench.attempt import wants_tools
+        assert not wants_tools("--- a/m.py\n+++ b/m.py\n@@ -1 +1 @@\n-a\n+b\n")
+
+    def test_tool_call_gets_its_own_outcome(self):
+        """Its own outcome, not a generic non-answer: it tells us the model needs a tool
+        interface, which is actionable about the model rather than about the harness."""
+        from bugbench.attempt import classify, extract_patch
+        outcome, scored = classify(self.REPLY, extract_patch(self.REPLY))
+        assert outcome == "needs_tools" and not scored
+
+    def test_no_patch_is_scraped_out_of_a_tool_call(self):
+        """Scraping diff-like lines from tool XML yields a headerless patch that applies to
+        nothing and would be recorded as an attempt."""
+        from bugbench.attempt import extract_patch
+        assert extract_patch(self.REPLY) == ""
