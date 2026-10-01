@@ -112,3 +112,27 @@ class TestStratifiedSubset:
 
     def test_handles_fewer_tasks_than_requested(self):
         assert len(stratified_subset([{"codebase": "a", "task_id": "a0"}], n=6)) == 1
+
+
+class TestMajorityVote:
+    """Single runs of an agent model are not measurements: the same model on the same panel
+    differed on 1 of 10 tasks between two runs."""
+
+    def test_unanimous_repeats_are_stable(self):
+        from bugbench.determinism import majority_vote
+        score, stable = majority_vote([1.0, 1.0, 1.0])
+        assert score == 1.0 and stable
+
+    def test_one_flake_in_three_yields_the_majority(self):
+        from bugbench.determinism import majority_vote
+        score, stable = majority_vote([1.0, 1.0, 0.0])
+        assert score == 1.0 and not stable, "flaky task must be reported as unstable"
+
+    def test_majority_direction_is_respected(self):
+        from bugbench.determinism import majority_vote
+        score, _ = majority_vote([0.0, 0.0, 1.0])
+        assert score == 0.0
+
+    def test_empty_input_scores_zero(self):
+        from bugbench.determinism import majority_vote
+        assert majority_vote([]) == (0.0, False)

@@ -146,3 +146,26 @@ def stratified_subset(tasks: list[dict], n: int = 6, seed: int = 0) -> list[str]
         if idx > 10_000:
             break
     return out[:n]
+
+
+def majority_vote(values: list[float], min_votes: int = 3) -> tuple[float, bool]:
+    """Reduce repeated agent runs of one task to a single score.
+
+    Measured necessity: the same model on the same panel differed on 1 of 10 tasks between
+    two runs, so a single run is not a measurement of a model. Unanimity-of-N was rejected
+    because at a 10% per-task flake rate it false-reds ~19% of genuinely fixed tasks;
+    majority-of-N keeps the false-green rate low and gives up a little of the false-red
+    rate, which is the right trade when a wrong "fixed" would inflate a model's score.
+
+    Returns ``(score, is_stable)`` where ``is_stable`` is False when the task did not have
+    a clear majority, so an unstable task can be reported rather than silently scored.
+    """
+    if not values:
+        return 0.0, False
+    counts: dict[float, int] = {}
+    for v in values:
+        counts[v] = counts.get(v, 0) + 1
+    best, n_best = max(counts.items(), key=lambda kv: (kv[1], kv[0]))
+    total = len(values)
+    stable = n_best * 2 > total and len(counts) == 1
+    return best, stable
