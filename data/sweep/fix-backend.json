@@ -10,6 +10,7 @@
     "test_node": "test_copilot_signalr_backend.py::test_frame_log_rotates_and_stays_bounded[copilot_signalr_backend]",
     "n_failing": 1,
     "depth": "function",
+    "difficulty": "moderate",
     "green_tests": [
       "test_copilot_signalr_backend.py"
     ]
@@ -25,6 +26,7 @@
     "test_node": "test_copilot_signalr_backend.py::test_frame_log_rotates_and_stays_bounded[copilot_signalr_backend_vps_test]",
     "n_failing": 1,
     "depth": "function",
+    "difficulty": "moderate",
     "green_tests": [
       "test_copilot_signalr_backend.py"
     ]

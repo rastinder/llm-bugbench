@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -30,6 +30,10 @@ TARGET_TASKS = 25
 #: those tasks are legitimate -- they measure recall of public history -- but they must be
 #: labelled and kept out of the headline aggregate.
 PUBLIC_CODEBASES = {"marketplace-monitor"}
+
+#: Ordering for panel selection: hardest first. A mutant whose difficulty is unknown (an
+#: older shard) is treated as moderate rather than dropped.
+DIFFICULTY_ORDER = {"hard": 0, "moderate": 1, "trivial": 2}
 
 
 @dataclass
@@ -48,6 +52,7 @@ class Selection:
             "target_tasks": TARGET_TASKS,
             "selected": len(self.tasks),
             "per_codebase_quota": self.per_codebase_quota,
+            "difficulty_mix": dict(Counter(t.get("difficulty", "?") for t in self.tasks)),
             "excluded_surplus": self.excluded,
             "codebases_with_no_tasks": self.empty_codebases,
             "tasks": self.tasks,
@@ -83,12 +88,17 @@ def dedupe(tasks: list[dict]) -> list[dict]:
 
 
 def select(tasks: list[dict], target: int = TARGET_TASKS,
-           prefer_depth: bool = True) -> Selection:
+           prefer_depth: bool = True, max_trivial: int = 0) -> Selection:
     """Pick ``target`` tasks with an equal budget per contributing codebase.
 
-    Ordering within a codebase is deterministic: deeper (function-level) mutants first,
-    because a mutated comparison inside a function is a behavioural defect, whereas a
-    mutated module-level constant is closer to a rename and says less about debugging.
+    Ordering within a codebase is deterministic and difficulty-first: harder mutants before
+    easier ones. Measured reason: a panel built from whatever was swept first was 73%
+    constant flips, and three frontier models scored 1.00 on every task in it. A panel with
+    no headroom cannot rank anything, so difficulty is ordered ahead of convenience.
+
+    ``max_trivial`` caps how many trivial tasks may enter the panel at all (0 = none). They
+    remain available for the oracle-validation gate, which does want easy cases, but they
+    must not consume panel slots.
     """
     tasks = dedupe(tasks)
     by_cb: dict[str, list[dict]] = defaultdict(list)
@@ -113,9 +123,15 @@ def select(tasks: list[dict], target: int = TARGET_TASKS,
     for cb in contributing:
         pool = sorted(
             by_cb[cb],
-            key=lambda t: (0 if (prefer_depth and t.get("depth") == "function") else 1,
-                           t["module"], t["line"], t["bug_id"]),
+            key=lambda t: (
+                DIFFICULTY_ORDER.get(t.get("difficulty", "moderate"), 1),
+                0 if (prefer_depth and t.get("depth") == "function") else 1,
+                t["module"], t["line"], t["bug_id"]),
         )
+        if max_trivial == 0:
+            eligible = [t for t in pool if t.get("difficulty") != "trivial"]
+            if eligible:
+                pool = eligible
         take = quotas[cb]
         chosen.extend(pool[:take])
         if len(pool) > take:
@@ -140,7 +156,7 @@ def compute_hash(sel: Selection) -> str:
     bugs are in the panel changes the hash.
     """
     payload = [
-        [t["codebase"], t["module"], t["bug_id"], t["test_node"]]
+        [t["codebase"], t["module"], t["bug_id"], t["test_node"], t.get("difficulty", "")]
         for t in sorted(sel.tasks, key=lambda x: (x["codebase"], x["module"], x["bug_id"]))
     ]
     blob = json.dumps({"target": TARGET_TASKS, "tasks": payload}, sort_keys=True)

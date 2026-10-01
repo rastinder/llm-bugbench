@@ -103,6 +103,7 @@ def sweep(repo: Path, workdir: Path, per_module: int = 25,
                 "test_node": failed[0],
                 "n_failing": len(failed),
                 "depth": "module" if m.symbol == "<module>" else "function",
+                "difficulty": m.difficulty,
                 "green_tests": tests,
             })
     return found

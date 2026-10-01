@@ -139,3 +139,32 @@ class TestBehaviourChange:
                 inert.append(m.bug_id)
 
         assert not inert, f"inert mutants (unanswerable tasks): {inert}"
+
+
+class TestDifficulty:
+    """A panel that only contains trivial mutants cannot rank anything competent.
+
+    Measured: three frontier models scored 1.00 on every task, and 73% of generated
+    mutants were constant flips.
+    """
+
+    def test_constant_flips_are_trivial(self):
+        assert generate("def f():\n    return 0\n", "m.py").mutants[0].difficulty == "trivial"
+
+    def test_comparison_flips_are_moderate(self):
+        s = generate("def f(x):\n    return x > 3\n", "m.py")
+        gt = next(m for m in s.mutants if m.operator == "gt")
+        assert gt.difficulty == "moderate"
+
+    def test_accumulator_arithmetic_is_hard(self):
+        s = generate("def f(xs):\n    t = 0\n    for x in xs:\n        t += x\n    return t\n", "m.py")
+        aug = next((m for m in s.mutants if m.operator == "aug_add"), None)
+        assert aug is not None and aug.difficulty == "hard"
+
+    def test_every_operator_has_a_difficulty(self):
+        s = generate("def f(a, b):\n    if a and b:\n        return 1\n    return 2\n", "m.py")
+        assert all(m.difficulty in {"trivial", "moderate", "hard"} for m in s.mutants)
+
+    def test_difficulty_appears_in_serialised_form(self):
+        m = generate("def f():\n    return 0\n", "m.py").mutants[0]
+        assert m.as_dict()["difficulty"] == "trivial"

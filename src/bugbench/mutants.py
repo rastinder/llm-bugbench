@@ -46,6 +46,31 @@ AUG_OPS = {"Add": ("+", "-"), "Sub": ("-", "+"), "Mult": ("*", "/")}
 CONST_OPS = {"true": (True, False), "false": (False, True), "none": (None, 0), "zero": (0, 1), "one": (1, 0)}
 
 
+#: How hard a mutant is, by operator.
+#:
+#: Measured on this cohort: three frontier models scored 1.00 on every task, and 73% of
+#: generated mutants were constant flips (``1 -> 0``, ``True -> False``) whose diffs are a
+#: single obvious token. Those are fine for validating the grader and useless for ranking
+#: anything competent, so difficulty is an explicit property of a mutant rather than
+#: something left to chance.
+#:
+#:   trivial  a literal flips. The diff is one token and the intent is usually obvious.
+#:   moderate a comparison or boolean connective flips: the code still runs and still looks
+#:            plausible, but the boundary or branch is wrong.
+#:   hard     arithmetic on accumulated state: the error is a wrong value, not a wrong
+#:            branch, so it survives a quick read and only shows up as a bad number.
+DIFFICULTY = {
+    "zero": "trivial", "one": "trivial", "true": "trivial",
+    "false": "trivial", "none": "trivial",
+    "eq": "moderate", "not_eq": "moderate",
+    "lt": "moderate", "gt": "moderate", "lte": "moderate", "gte": "moderate",
+    "and": "moderate", "or": "moderate",
+    "aug_add": "hard", "aug_sub": "hard", "aug_mult": "hard",
+}
+
+DIFFICULTY_ORDER = {"hard": 0, "moderate": 1, "trivial": 2}
+
+
 @dataclass(frozen=True)
 class Mutant:
     """One generated defect."""
@@ -58,12 +83,17 @@ class Mutant:
     original: str
     mutated: str
 
+    @property
+    def difficulty(self) -> str:
+        return DIFFICULTY.get(self.operator, "moderate")
+
     def as_dict(self) -> dict:
         return {
             "bug_id": self.bug_id,
             "source_file": self.source_file,
             "symbol": self.symbol,
             "operator": self.operator,
+            "difficulty": self.difficulty,
             "line": self.line,
             "original": self.original,
             "mutated": self.mutated,

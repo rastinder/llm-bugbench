@@ -159,3 +159,47 @@ class TestPublicExposure:
     def test_selection_records_the_codebase_of_every_task(self):
         sel = select([task("marketplace-monitor", "b1"), task("private", "b1")], 2)
         assert {t["codebase"] for t in sel.tasks} == {"marketplace-monitor", "private"}
+
+
+class TestDifficultyOrdering:
+    """The panel that produced 1.00 across three frontier models was 73% constant flips.
+    Selection must prefer hard mutants, and must be able to exclude trivial ones entirely.
+    """
+
+    def _t(self, cb, bug_id, difficulty):
+        t = task(cb, bug_id)
+        t["difficulty"] = difficulty
+        return t
+
+    def test_hard_mutants_are_preferred_over_trivial(self):
+        tasks = ([self._t("a", f"triv{i}", "trivial") for i in range(5)] +
+                 [self._t("a", f"hard{i}", "hard") for i in range(5)])
+        sel = select(tasks, target=3)
+
+        assert all(t["difficulty"] == "hard" for t in sel.tasks)
+
+    def test_trivial_tasks_are_excluded_by_default(self):
+        tasks = ([self._t("a", f"triv{i}", "trivial") for i in range(9)] +
+                 [self._t("a", f"mod{i}", "moderate") for i in range(9)])
+        sel = select(tasks, target=6)
+
+        assert all(t["difficulty"] != "trivial" for t in sel.tasks)
+
+    def test_trivial_used_only_when_nothing_else_exists(self):
+        """A codebase with only trivial mutants must still contribute something rather
+        than vanishing from the panel."""
+        tasks = [self._t("a", f"triv{i}", "trivial") for i in range(4)]
+        sel = select(tasks, target=2)
+
+        assert len(sel.tasks) == 2
+
+    def test_manifest_hash_changes_with_difficulty_mix(self):
+        easy = [self._t("a", "x", "trivial")]
+        hard = [self._t("a", "x", "hard")]
+        assert select(easy, 1).manifest_hash != select(hard, 1).manifest_hash
+
+    def test_difficulty_mix_is_reported(self):
+        tasks = ([self._t("a", f"h{i}", "hard") for i in range(3)] +
+                 [self._t("a", f"m{i}", "moderate") for i in range(3)])
+        sel = select(tasks, target=4)
+        assert set(sel.as_dict()["difficulty_mix"]) <= {"hard", "moderate", "trivial"}
