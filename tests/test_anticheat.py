@@ -45,12 +45,25 @@ live = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 def task():
+    """The smallest task in the panel.
+
+    Deliberately: the live checks make real calls, and a 70 KB module reliably exceeds the
+    provider's origin timeout, so picking task[0] would test the provider rather than the
+    anti-cheating property.
+    """
     if not PANEL.exists():
         pytest.skip("panel not frozen")
     data = json.loads(PANEL.read_text())
     if not data["tasks"]:
         pytest.skip("panel is empty")
-    return data["tasks"][0]
+    import os as _os
+
+    def size(t):
+        try:
+            return (ROOTS[t["codebase"]] / t["module"]).stat().st_size
+        except OSError:
+            return 10 ** 9
+    return sorted(data["tasks"], key=size)[0]
 
 
 class TestPromptHygiene:
@@ -178,7 +191,7 @@ class TestAgainstLiveModel:
         outcomes = []
         for i in range(2):
             att = attempt_task(BASE_URL, MODEL, task, code, tmp_path / f"r{i}",
-                               API_KEY, timeout=180)
+                               API_KEY, timeout=300, retries=1)
             outcomes.append(att.outcome)
         # Both must be classified; identical *answers* are not required (sampling is a
         # real source of variance) but a transport crash on one and not the other would
