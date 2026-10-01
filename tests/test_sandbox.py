@@ -62,3 +62,32 @@ def test_survives_a_dead_symlink(tmp_path):
     (src / "broken").symlink_to("/nonexistent/path")
     sb = build_sandbox(src, tmp_path / "sb")
     assert (sb / "a.py").exists()
+
+
+def test_skips_runtime_output_dirs(tmp_path):
+    """Regression: one repo carried 4.8 GB of generated reports under data/, which was
+    copied into every mutant sandbox until the disk filled."""
+    src = tmp_path / "repo"; src.mkdir()
+    (src / "a.py").write_text("x=1")
+    data = src / "data"; data.mkdir()
+    (data / "huge.bin").write_bytes(b"x" * 9_000_000)   # over MAX_DIR_BYTES
+    sb = build_sandbox(src, tmp_path / "sb")
+    assert (sb / "a.py").exists()
+    assert not (sb / "data").exists()
+
+
+def test_skips_nested_runtime_dirs(tmp_path):
+    src = tmp_path / "repo"; (src / "pkg" / "data").mkdir(parents=True)
+    (src / "pkg" / "m.py").write_text("x=1")
+    (src / "pkg" / "data" / "junk.bin").write_bytes(b"x" * 9_000_000)
+    sb = build_sandbox(src, tmp_path / "sb")
+    assert (sb / "pkg" / "m.py").exists()
+    assert not (sb / "pkg" / "data").exists()
+
+
+def test_sandbox_stays_small_for_a_data_heavy_repo(tmp_path):
+    src = tmp_path / "repo"; (src / "data").mkdir(parents=True)
+    (src / "data" / "blob.bin").write_bytes(b"x" * 20_000_000)
+    (src / "m.py").write_text("x=1")
+    sb = build_sandbox(src, tmp_path / "sb")
+    assert size_bytes(sb) < 1_000_000

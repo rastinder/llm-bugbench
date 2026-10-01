@@ -269,6 +269,35 @@ now mandatory rather than cosmetic — supply is genuinely uneven, and 3 codebas
 otherwise be structurally absent from the panel. Public-exposure tasks stay in the panel
 only as memorization probes, which is what makes the contamination gate measurable.
 
+## Panel frozen (manifest `e72295c2d061d8ab`)
+
+**15 tasks, not 25** — supply-capped, and reported as such rather than padded.
+
+| Codebase | Tasks | Quota | Surplus excluded |
+|---|---:|---:|---:|
+| `.opencode-telegram-bot` | 9 | 9 | 41 |
+| `copilot-model-audit` | 4 | 8 | 0 |
+| `.fix-backend` | 2 | 8 | 0 |
+| **total** | **15** | 25 | 41 |
+
+Quotas are equal per codebase; the two small repos contribute all they have and are **not**
+padded from the large one, because padding would defeat the equal weighting. Composition:
+**100% function-depth** mutants (no module-constant renames), 4 distinct modules,
+operators `zero`(7) `and`(2) `false`(2) `gte` `none` `lt`.
+
+Two codebases swept to **zero** tasks despite having a green test file (`.cloakbrowser`),
+and three have no hermetic tests at all (`whatsedit-local`, `copilot-tool-layer`,
+`copilot-fix`). Those absences are recorded in the manifest, not hidden.
+
+A third sweep (`marketplace-monitor`, public) was still running when the panel was frozen;
+it is a **memorization probe**, so by design it does not join the headline aggregate.
+
+### The supply ceiling is a real limit, stated plainly
+25 tasks was the target; 15 is what the hermetic corpus yields. The options are to accept a
+15-task panel (low power, more TIED outcomes), or to widen supply by writing tests for
+currently-untested hermetic modules in the same codebases. Widening is authored rather than
+organic, which is a weaker claim about real-world debugging, so it is not done silently.
+
 ## Panel composition (user chose Option A)
 
 `AutoPilot-Jobs` is the **backbone** — private, 88 fix commits, and it already ships

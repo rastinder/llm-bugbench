@@ -1,0 +1,268 @@
+{
+  "codebases_with_no_tasks": [],
+  "excluded_surplus": {
+    ".opencode-telegram-bot": 41
+  },
+  "manifest_hash": "e72295c2d061d8ab",
+  "per_codebase_quota": {
+    ".fix-backend": 8,
+    ".opencode-telegram-bot": 9,
+    "copilot-model-audit": 8
+  },
+  "selected": 15,
+  "target_tasks": 25,
+  "tasks": [
+    {
+      "bug_id": "mut_358095f8c13f",
+      "codebase": ".fix-backend",
+      "depth": "function",
+      "green_tests": [
+        "test_copilot_signalr_backend.py"
+      ],
+      "line": 62,
+      "module": "copilot_signalr_backend.py",
+      "n_failing": 1,
+      "operator": "and",
+      "symbol": "_append_signalr_frame_log",
+      "task_id": ".fix-backend__mut_358095f8c13f",
+      "test_node": "test_copilot_signalr_backend.py::test_frame_log_rotates_and_stays_bounded[copilot_signalr_backend]"
+    },
+    {
+      "bug_id": "mut_3e9846e405f7",
+      "codebase": ".fix-backend",
+      "depth": "function",
+      "green_tests": [
+        "test_copilot_signalr_backend.py"
+      ],
+      "line": 62,
+      "module": "copilot_signalr_backend_vps.py",
+      "n_failing": 1,
+      "operator": "and",
+      "symbol": "_append_signalr_frame_log",
+      "task_id": ".fix-backend__mut_3e9846e405f7",
+      "test_node": "test_copilot_signalr_backend.py::test_frame_log_rotates_and_stays_bounded[copilot_signalr_backend_vps_test]"
+    },
+    {
+      "bug_id": "mut_f7b8f9b1fa36",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 82,
+      "module": "bench_stt.py",
+      "n_failing": 1,
+      "operator": "gte",
+      "symbol": "_words_to_number",
+      "task_id": ".opencode-telegram-bot__mut_f7b8f9b1fa36",
+      "test_node": "NumberNormalizationTests.py::test_simple_numbers"
+    },
+    {
+      "bug_id": "mut_84e6287d30de",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 86,
+      "module": "bench_stt.py",
+      "n_failing": 7,
+      "operator": "zero",
+      "symbol": "_words_to_number",
+      "task_id": ".opencode-telegram-bot__mut_84e6287d30de",
+      "test_node": "NumberNormalizationTests.py::test_bare_number_word_becomes_digit_symmetrically"
+    },
+    {
+      "bug_id": "mut_767a1546b9ca",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 87,
+      "module": "bench_stt.py",
+      "n_failing": 7,
+      "operator": "zero",
+      "symbol": "_words_to_number",
+      "task_id": ".opencode-telegram-bot__mut_767a1546b9ca",
+      "test_node": "NumberNormalizationTests.py::test_bare_number_word_becomes_digit_symmetrically"
+    },
+    {
+      "bug_id": "mut_9fa2e0d1a1db",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 88,
+      "module": "bench_stt.py",
+      "n_failing": 7,
+      "operator": "zero",
+      "symbol": "_words_to_number",
+      "task_id": ".opencode-telegram-bot__mut_9fa2e0d1a1db",
+      "test_node": "NumberNormalizationTests.py::test_bare_number_word_becomes_digit_symmetrically"
+    },
+    {
+      "bug_id": "mut_59524771c6e1",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 89,
+      "module": "bench_stt.py",
+      "n_failing": 7,
+      "operator": "zero",
+      "symbol": "_words_to_number",
+      "task_id": ".opencode-telegram-bot__mut_59524771c6e1",
+      "test_node": "NumberNormalizationTests.py::test_bare_number_word_becomes_digit_symmetrically"
+    },
+    {
+      "bug_id": "mut_cb87134acf2b",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 90,
+      "module": "bench_stt.py",
+      "n_failing": 7,
+      "operator": "false",
+      "symbol": "_words_to_number",
+      "task_id": ".opencode-telegram-bot__mut_cb87134acf2b",
+      "test_node": "NumberNormalizationTests.py::test_bare_number_word_becomes_digit_symmetrically"
+    },
+    {
+      "bug_id": "mut_3df59701ec9a",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 95,
+      "module": "bench_stt.py",
+      "n_failing": 3,
+      "operator": "zero",
+      "symbol": "_words_to_number.emit",
+      "task_id": ".opencode-telegram-bot__mut_3df59701ec9a",
+      "test_node": "NumberNormalizationTests.py::test_two_years_in_one_sentence_split"
+    },
+    {
+      "bug_id": "mut_9ba05a607d71",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 96,
+      "module": "bench_stt.py",
+      "n_failing": 3,
+      "operator": "zero",
+      "symbol": "_words_to_number.emit",
+      "task_id": ".opencode-telegram-bot__mut_9ba05a607d71",
+      "test_node": "NumberNormalizationTests.py::test_two_years_in_one_sentence_split"
+    },
+    {
+      "bug_id": "mut_21f2927645f6",
+      "codebase": ".opencode-telegram-bot",
+      "depth": "function",
+      "green_tests": [
+        "tests/test_agent_core.py",
+        "tests/test_bench_stt.py",
+        "tests/test_call_token.py",
+        "tests/test_relay_core.py"
+      ],
+      "line": 97,
+      "module": "bench_stt.py",
+      "n_failing": 3,
+      "operator": "zero",
+      "symbol": "_words_to_number.emit",
+      "task_id": ".opencode-telegram-bot__mut_21f2927645f6",
+      "test_node": "NumberNormalizationTests.py::test_two_years_in_one_sentence_split"
+    },
+    {
+      "bug_id": "mut_09a2530fc872",
+      "codebase": "copilot-model-audit",
+      "depth": "function",
+      "green_tests": [
+        "test_check_model_menu.py"
+      ],
+      "line": 126,
+      "module": "check_model_menu.py",
+      "n_failing": 2,
+      "operator": "none",
+      "symbol": "read_alert_state",
+      "task_id": "copilot-model-audit__mut_09a2530fc872",
+      "test_node": "ModelMenuAuditTests.py::test_empty_ui_retries_and_recovers"
+    },
+    {
+      "bug_id": "mut_f35cf9a8a777",
+      "codebase": "copilot-model-audit",
+      "depth": "function",
+      "green_tests": [
+        "test_check_model_menu.py"
+      ],
+      "line": 196,
+      "module": "check_model_menu.py",
+      "n_failing": 9,
+      "operator": "lt",
+      "symbol": "run_audit",
+      "task_id": "copilot-model-audit__mut_f35cf9a8a777",
+      "test_node": "ModelMenuAuditTests.py::test_alert_failure_keeps_previous_state_for_retry"
+    },
+    {
+      "bug_id": "mut_52188f8e7650",
+      "codebase": "copilot-model-audit",
+      "depth": "function",
+      "green_tests": [
+        "test_check_model_menu.py"
+      ],
+      "line": 202,
+      "module": "check_model_menu.py",
+      "n_failing": 1,
+      "operator": "false",
+      "symbol": "run_audit",
+      "task_id": "copilot-model-audit__mut_52188f8e7650",
+      "test_node": "ModelMenuAuditTests.py::test_malformed_snapshot_is_not_overwritten"
+    },
+    {
+      "bug_id": "mut_3e55b95e7a57",
+      "codebase": "copilot-model-audit",
+      "depth": "function",
+      "green_tests": [
+        "test_check_model_menu.py"
+      ],
+      "line": 206,
+      "module": "check_model_menu.py",
+      "n_failing": 4,
+      "operator": "one",
+      "symbol": "run_audit",
+      "task_id": "copilot-model-audit__mut_3e55b95e7a57",
+      "test_node": "ModelMenuAuditTests.py::test_catalog_failure_preserves_last_known_good_state"
+    }
+  ]
+}

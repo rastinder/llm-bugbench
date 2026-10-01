@@ -32,6 +32,16 @@ SKIP = (".git", "node_modules", "models", ".cache", "dist", "build", "target",
         "shared-profile", "chrome-profile", "profile", "Default", "Crashpad",
         ".browser-profile")
 
+#: Directories whose *contents* are runtime output rather than source. These accumulate
+#: without bound -- one repo carried 4.8 GB of generated reports in `data/`, which was
+#: copied into every mutant sandbox until a disk filled. Recursive skip patterns mean a
+#: nested `data/` is skipped too, so this cannot be side-stepped by a subproject layout.
+SKIP_ANYWHERE = ("data", "logs", "var", "tmp", ".cache", "cache", "coverage",
+                 "fixtures_large", "snapshots", "artifacts", "reports")
+
+#: Any single directory larger than this is not source we need.
+MAX_DIR_BYTES = 8 * 1024 * 1024
+
 
 def _skippable(item: Path) -> bool:
     """True for anything we must not copy: sockets, fifos, devices, dead symlinks."""
@@ -47,18 +57,44 @@ def _skippable(item: Path) -> bool:
     return False
 
 
+def _copy_filter(src_dir: str, names: list[str]) -> set[str]:
+    """shutil copytree filter: drop caches, runtime-output dirs, and anything huge."""
+    dropped = set()
+    for name in names:
+        if name in _IGNORE_NAMES or name in SKIP_ANYWHERE or name.startswith("."):
+            dropped.add(name)
+            continue
+        path = Path(src_dir) / name
+        if path.is_dir() and not path.is_symlink():
+            try:
+                if dir_size(path) > MAX_DIR_BYTES:
+                    dropped.add(name)
+            except OSError:
+                dropped.add(name)
+    return dropped
+
+
+#: Literal names dropped during the recursive copy. Expressed as a plain set because
+#: shutil.ignore_patterns is a factory and exposes no `.patterns` attribute.
+_IGNORE_NAMES = {
+    "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox", ".git",
+    "node_modules", ".coverage", "htmlcov", "venv", ".venv",
+}
+
+
 def build_sandbox(repo: Path, dest: Path) -> Path:
     """Materialise a cheap, runnable copy of ``repo`` at ``dest``.
 
     Source files are copied; ``venv``/``node_modules`` are symlinked so imports resolve
-    without duplicating gigabytes; everything else large is skipped.
+    without duplicating gigabytes; runtime-output directories and anything oversized are
+    skipped.
     """
     repo, dest = Path(repo), Path(dest)
     dest.mkdir(parents=True, exist_ok=True)
 
     for item in repo.iterdir():
         name = item.name
-        if name in SKIP:
+        if name in SKIP or name in SKIP_ANYWHERE:
             continue
         if _skippable(item):
             continue
@@ -68,12 +104,40 @@ def build_sandbox(repo: Path, dest: Path) -> Path:
                 if not target.exists():
                     os.symlink(item.resolve(), target)
                 continue
-            shutil.copytree(item, dest / name, ignore=IGNORE, dirs_exist_ok=True)
+            try:
+                if dir_size(item, skip_prunable=True) > MAX_DIR_BYTES:
+                    continue
+            except OSError:
+                continue
+            shutil.copytree(item, dest / name, ignore=_copy_filter, dirs_exist_ok=True)
         else:
             if name.endswith((".pyc", ".pyo")):
                 continue
             shutil.copy2(item, dest / name)
     return dest
+
+
+def dir_size(path: Path, skip_prunable: bool = False) -> int:
+    """Total bytes under ``path``, not following symlinks (they are shared).
+
+    With ``skip_prunable`` the traversal ignores SKIP_ANYWHERE directories, so a source
+    directory that merely *contains* a 9 MB `data/` blob is not itself judged oversized --
+    otherwise the whole package would be discarded along with the blob it was pruning.
+    """
+    total = 0
+    root = Path(path)
+    for dirpath, dirnames, filenames in os.walk(root):
+        if skip_prunable:
+            dirnames[:] = [d for d in dirnames if d not in SKIP_ANYWHERE]
+        for f in filenames:
+            p = Path(dirpath) / f
+            try:
+                if p.is_symlink():
+                    continue
+                total += p.stat().st_size
+            except OSError:
+                continue
+    return total
 
 
 def grader_env(extra: dict | None = None) -> dict:
@@ -102,14 +166,5 @@ def grader_env(extra: dict | None = None) -> dict:
     return env
 
 
-def size_bytes(path: Path) -> int:
-    """Recursive size, counting symlinked targets as negligible (they are shared)."""
-    total = 0
-    for p in Path(path).rglob("*"):
-        try:
-            if p.is_symlink():
-                continue
-            total += p.stat().st_size
-        except OSError:
-            continue
-    return total
+#: Backwards-compatible alias used by the tests.
+size_bytes = dir_size
