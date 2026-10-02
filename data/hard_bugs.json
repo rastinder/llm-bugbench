@@ -1,0 +1,301 @@
+[
+  {
+    "session_id": "ses_f14be9002ffei6pkJwJQ9oytNR",
+    "project": "/",
+    "title": "OpenCode LLM Bug-Fix Benchmark",
+    "turns": 4793,
+    "tool_calls": 1298,
+    "edits": 251,
+    "struggle_hits": 77,
+    "struggle_ratio": 0.059,
+    "fix_file": "/home/ras/llm-bugbench/src/bugbench/marks.py",
+    "fix_changed_lines": 152,
+    "categories": [
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1790780612536,
+    "symptom": "dont ask me any questions but scan my opencode history , find all bugs which were identified and fixed where i told opencode to try x or y, copy the sample code, write goal that we wanted to achieve n let any llm model to find n fix the bug in that code snippet . we will make a bench mark app where we will run all models n see how many bugs they idetify and how many they can fix."
+  },
+  {
+    "session_id": "ses_f1f796f51ffeb732gk6tvm7r81",
+    "project": "/",
+    "title": "Autopilot navigation and field extraction bugs",
+    "turns": 3945,
+    "tool_calls": 973,
+    "edits": 174,
+    "struggle_hits": 51,
+    "struggle_ratio": 0.052,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/field_extractor.py",
+    "fix_changed_lines": 123,
+    "categories": [
+      "browser_interaction",
+      "protocol_wire"
+    ],
+    "fix_time": 1790520724493,
+    "symptom": "run my script autopilot job . there are navigation bugs and accutrate field extraction bugs which i wnat you to solve, bugs arises on different sites so u may need to test mutiple sites on your own"
+  },
+  {
+    "session_id": "ses_f2656cdf9ffe03Y06592nOiZRn",
+    "project": "/",
+    "title": "Identifying New 9B LLM and Code Benchmark",
+    "turns": 3797,
+    "tool_calls": 931,
+    "edits": 61,
+    "struggle_hits": 51,
+    "struggle_ratio": 0.055,
+    "fix_file": "/home/ras/copilot-tool-layer/tool_layer.py",
+    "fix_changed_lines": 80,
+    "categories": [
+      "browser_interaction",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1790372841070,
+    "symptom": "hi some new model came , and its 9b variant is far supror in code quality then our currenbt , find it then find its benchmark score, if unsure which llm m talking then check benchmark of llm , if u need to run then run in cpu only for testing as vram is busy"
+  },
+  {
+    "session_id": "ses_f1fb4f27fffeo0RXI9GYBbaODp",
+    "project": "/",
+    "title": "RAG for Auto Job Pilot Experience Calculation",
+    "turns": 2813,
+    "tool_calls": 710,
+    "edits": 145,
+    "struggle_hits": 39,
+    "struggle_ratio": 0.055,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/rag_resume_extractor.py",
+    "fix_changed_lines": 250,
+    "categories": [
+      "browser_interaction",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1790473982226,
+    "symptom": "do the research , what is most accurate rag implimnetation menthod ? and i want to use it in auto job pilot , i want when years of experence is asked then number of projects and date of projects etc should be considered to cum up with a number"
+  },
+  {
+    "session_id": "ses_f97b54900ffeWpXGccDW0ZjA0x",
+    "project": "/",
+    "title": "Anti gravity flaws and Gemini wrong practices",
+    "turns": 643,
+    "tool_calls": 166,
+    "edits": 26,
+    "struggle_hits": 39,
+    "struggle_ratio": 0.235,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/field_extractor.py",
+    "fix_changed_lines": 254,
+    "categories": [
+      "browser_interaction",
+      "visual_rendering",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1788459410820,
+    "symptom": "do a googgle search, about anti gravity flaws and gemini models wrong pratises"
+  },
+  {
+    "session_id": "ses_fb95215ffffexnlgk2xU1700De",
+    "project": "/",
+    "title": "Auto job pilot check",
+    "turns": 1548,
+    "tool_calls": 345,
+    "edits": 59,
+    "struggle_hits": 38,
+    "struggle_ratio": 0.11,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/indeed_applier_playwright.py",
+    "fix_changed_lines": 204,
+    "categories": [
+      "browser_interaction",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1787974174424,
+    "symptom": "check auto job pilot"
+  },
+  {
+    "session_id": "ses_f153b660affeEw3kwIFjXeZyqy",
+    "project": "/",
+    "title": "Bug triage: code and security issues analysis",
+    "turns": 2796,
+    "tool_calls": 735,
+    "edits": 127,
+    "struggle_hits": 27,
+    "struggle_ratio": 0.037,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/indeed_applier_playwright.py",
+    "fix_changed_lines": 115,
+    "categories": [
+      "browser_interaction",
+      "visual_rendering",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1790748493744,
+    "symptom": "check if the diagnose is correct or incorrect ? do need to fix or not ? if any(k in url for k in ('verify', 'verification', 'confirm-email', 'otp', 'code')): return True Impact: Standard application URLs with parameters like ?code=12345, postal_code, /job/code-, or qr-code are falsely flagged as OTP/email verification screens. 14. Non-Contextual Webmail OTP Extraction File: indeed_applier/email_verifier.py:101-104 Root Cause: standalone = re.findall(r'\\b[0-9]{6}\\b', text) returns standalone[0] from the body of open webmail tabs without checking proximity to keywords or email subject headers. I"
+  },
+  {
+    "session_id": "ses_f25cb5c76ffeoXiSsF2w0NW4J3",
+    "project": "/",
+    "title": "AI agent for 24x7 script monitoring",
+    "turns": 1963,
+    "tool_calls": 486,
+    "edits": 49,
+    "struggle_hits": 27,
+    "struggle_ratio": 0.056,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/05-universal-applier/tests/test_applier.py",
+    "fix_changed_lines": 66,
+    "categories": [
+      "browser_interaction",
+      "visual_rendering",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1790376298075,
+    "symptom": "i want to know if i want ai agent to babysit my script then what is the best baby sitting took on github i should getr , i want it to see what script is doing visualy plus extrating text from same browser that script is controlling. then also check scripts log and also check time that why its wasting , what is avaialble tools in script are presnt , first analside my requirment that where i wil luse for some reference u can check my auto job copilot script. i want it to fix my sript on the go while we run it 24x7."
+  },
+  {
+    "session_id": "ses_fdb6e202cffeVC6kXmdB5uC3p5",
+    "project": "/",
+    "title": "Syncing updated auto job applier files",
+    "turns": 3720,
+    "tool_calls": 908,
+    "edits": 218,
+    "struggle_hits": 25,
+    "struggle_ratio": 0.028,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/field_extractor.py",
+    "fix_changed_lines": 104,
+    "categories": [
+      "async_concurrency",
+      "data_state"
+    ],
+    "fix_time": 1787497246398,
+    "symptom": "i updated auto job applier in my laptop , can u get updated files from my laptop n replace our project ?"
+  },
+  {
+    "session_id": "ses_f1bfe55a3ffeKSg7UPR3t6EgyX",
+    "project": "/",
+    "title": "Voice Call Control for Opencode",
+    "turns": 2280,
+    "tool_calls": 554,
+    "edits": 74,
+    "struggle_hits": 22,
+    "struggle_ratio": 0.04,
+    "fix_file": "/home/ras/.opencode-telegram-bot/opencode_telegram_bot.py",
+    "fix_changed_lines": 173,
+    "categories": [
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1790536034427,
+    "symptom": "i want audio call to my this pc via internet from my telegram or other service then i talk to my opencode and it do work n tell me via audio that it did or it ask me via same call"
+  },
+  {
+    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
+    "project": "/",
+    "title": "Facebook Marketplace service post finder",
+    "turns": 3328,
+    "tool_calls": 796,
+    "edits": 161,
+    "struggle_hits": 13,
+    "struggle_ratio": 0.016,
+    "fix_file": "/home/ras/marketplace-monitor/mass_report.py",
+    "fix_changed_lines": 112,
+    "categories": [
+      "visual_rendering",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1790372919913,
+    "symptom": "i have conneted my phone with fb open its has atx control , there force using atx control and live tools set corn job that opencode automaticaly search on market place adds regaurding laptop repair , pc repair , or fix , software devlopment , website delopment , change search terms to get more data log every add and in end report all service selling post , as mmeta dont allow service selling posts, dontrely on autmation script prefer live tool calls for reporting and finding , people sometimes write in code words that u have to detect also sometimes only image is presnet whewre services are be"
+  },
+  {
+    "session_id": "ses_054cbc70affeQdolMdiwK4K37N",
+    "project": "/",
+    "title": "Delete autojob pilot data and pull updates",
+    "turns": 2990,
+    "tool_calls": 747,
+    "edits": 66,
+    "struggle_hits": 12,
+    "struggle_ratio": 0.016,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/hybrid_resume_builder.py",
+    "fix_changed_lines": 250,
+    "categories": [
+      "browser_interaction",
+      "visual_rendering",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1785350709504,
+    "symptom": "delete our autojob pilot all data n pull updated from laptop"
+  },
+  {
+    "session_id": "ses_f9b8d161effeuD9oWAm8Dz6rKm",
+    "project": "/",
+    "title": "Adding captcha solver to auto job applier",
+    "turns": 263,
+    "tool_calls": 71,
+    "edits": 12,
+    "struggle_hits": 12,
+    "struggle_ratio": 0.169,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/captcha_solver.py",
+    "fix_changed_lines": 387,
+    "categories": [
+      "browser_interaction",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1788391845923,
+    "symptom": "i boufght captcha solver api i need u to add that in auto job applier"
+  },
+  {
+    "session_id": "ses_f1a9af128ffem6Q9havJu0kQ6q",
+    "project": "/",
+    "title": "FB notifications: reports, listings, blocks",
+    "turns": 887,
+    "tool_calls": 223,
+    "edits": 13,
+    "struggle_hits": 9,
+    "struggle_ratio": 0.04,
+    "fix_file": "/home/ras/marketplace-monitor/mass_report.py",
+    "fix_changed_lines": 25,
+    "categories": [
+      "browser_interaction",
+      "visual_rendering",
+      "async_concurrency",
+      "data_state"
+    ],
+    "fix_time": 1790563806274,
+    "symptom": "on phone fb notifiacations count how many it says we reported and how many lsitings we put down inc if we restrict any account too"
+  },
+  {
+    "session_id": "ses_034eaa0b2ffeZ32oPHpxBQqodM",
+    "project": "/",
+    "title": "Autojob applier run and navigation",
+    "turns": 637,
+    "tool_calls": 145,
+    "edits": 7,
+    "struggle_hits": 7,
+    "struggle_ratio": 0.048,
+    "fix_file": "/home/ras/Desktop/AutoPilot-Jobs/indeed_applier/indeed_applier_playwright.py",
+    "fix_changed_lines": 15,
+    "categories": [
+      "browser_interaction",
+      "visual_rendering",
+      "async_concurrency",
+      "protocol_wire",
+      "data_state"
+    ],
+    "fix_time": 1785818861405,
+    "symptom": "run autojob applier i want to see it running n navigating"
+  }
+]

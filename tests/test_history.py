@@ -254,3 +254,40 @@ class TestTruncatedSnapshots:
         from bugbench.history import is_truncated
         assert is_truncated("Output capped at 50 KB")
         assert not is_truncated("def f():\n    return 1\n")
+
+
+class TestHardBugMining:
+    """Difficulty must be evidenced by the shape of a session, never by a keyword.
+
+    Searching the corpus for the phrase "generated image drag" returned documentation quotes
+    and unrelated sessions: the phrase in a report describes the bug, the code does not
+    contain it. What the code does contain is the *shape* of having struggled.
+    """
+
+    def test_struggle_marker_counting(self):
+        from bugbench.hardbugs import STRUGGLE_MARKERS
+        stuck = "still not working. let me try again. same error."
+        hits = sum(1 for m in STRUGGLE_MARKERS if m in stuck)
+        assert hits >= 3
+
+    def test_a_healthy_session_would_not_score(self):
+        from bugbench.hardbugs import STRUGGLE_MARKERS
+        healthy = "Added the missing import. Ran the suite: 120 passed."
+        assert sum(1 for m in STRUGGLE_MARKERS if m in healthy) == 0
+
+    def test_categories_need_two_signals_not_one(self):
+        from bugbench.hardbugs import classify
+        assert "browser_interaction" not in classify("the click failed")
+        assert "browser_interaction" in classify("playwright click locator timeout on the dom")
+
+    def test_classification_is_multi_label(self):
+        from bugbench.hardbugs import classify
+        cats = classify("async await race with a websocket frame and json timeout")
+        assert len(cats) >= 2, cats
+
+    def test_struggle_ratio_is_bounded(self):
+        from bugbench.hardbugs import HardBug
+        for calls, turns, hits in [(0, 100, 9), (10, 100, 9), (100, 100, 250)]:
+            b = HardBug("s", "p", "t", turns=turns, tool_calls=calls, edits=1,
+                        struggle_hits=hits)
+            assert 0.0 <= b.struggle_ratio <= 1.0, (calls, turns, hits, b.struggle_ratio)
