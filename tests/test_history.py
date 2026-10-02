@@ -291,3 +291,72 @@ class TestHardBugMining:
             b = HardBug("s", "p", "t", turns=turns, tool_calls=calls, edits=1,
                         struggle_hits=hits)
             assert 0.0 <= b.struggle_ratio <= 1.0, (calls, turns, hits, b.struggle_ratio)
+
+
+class TestDefectInjection:
+    """Constant-flip mutants were measured to produce a panel frontier models ace, so the
+    injector deliberately offers only semantically-motivated defects."""
+
+    SRC = '''def clamp(v, lo, hi):
+    if v < lo:
+        v = lo
+    if v > hi:
+        v = hi
+    return v
+'''
+
+    def test_comparison_sites_are_found(self):
+        from bugbench.inject import find_defect_sites
+        sites = find_defect_sites(self.SRC)
+        assert sites, "a comparison must yield at least one site"
+
+    def test_no_constant_flip_sites_are_offered(self):
+        """The class that made the first panel trivially passable."""
+        from bugbench.inject import find_defect_sites
+        assert not any(cls in ("zero", "true", "false", "none", "one")
+                       for cls, *_ in find_defect_sites(self.SRC))
+
+    def test_mutation_is_unique_match_only(self):
+        from bugbench.inject import apply_bug
+        src = "x = a - b\nx = a - b\n"
+        assert apply_bug(src, "x = a - b", "x = a + b") is None, "ambiguous is rejected"
+        assert apply_bug("x = a - b\n", "x = a - b", "x = a + b") is not None
+
+    def test_mutation_must_still_parse(self):
+        from bugbench.inject import apply_bug
+        assert apply_bug("def f(:\n", "def f(:", "def f():") is None
+
+    def test_comment_lines_are_never_mutated(self):
+        from bugbench.inject import find_defect_sites
+        src = "# if v < lo:\ndef f(v):\n    return v\n"
+        assert not any("if v < lo" in o for _, _, o, _, _ in find_defect_sites(src))
+
+
+class TestInjectedBugSerialisation:
+    """Regression: the grader scores by comparing a candidate's probe output against the
+    recorded correct value. Omitting those values from as_dict() made every task score 0 --
+    including the fixed state -- which is indistinguishable from a genuinely hard task."""
+
+    def test_probe_values_survive_serialisation(self):
+        from bugbench.inject import InjectedBug
+        b = InjectedBug("b0", "inverted_guard", 12, "if not x:", "if x:",
+                        probe="clamp", probe_value_before='3', probe_value_after='7')
+        d = b.as_dict()
+
+        assert d["probe_value_after"] == "7"
+        assert d["probe_value_before"] == "3"
+        assert d["probe"] == "clamp"
+
+    def test_round_trip_preserves_grading_inputs(self):
+        import json
+        from bugbench.inject import InjectedBug
+        b = InjectedBug("b0", "off_by_one", 3, "a - b", "a + b",
+                        probe="f", probe_value_before='"1"', probe_value_after='"2"')
+        # `class` is the JSON key but `class_name` the field, so a round trip needs the
+        # rename made explicit; anything consuming the manifest hits this too.
+        raw = json.loads(json.dumps(b.as_dict()))
+        raw["class_name"] = raw.pop("class")
+        again = InjectedBug(**{k: v for k, v in raw.items()
+                               if k in InjectedBug.__dataclass_fields__})
+        assert again.probe_value_after == '"2"'
+        assert again.class_name == "off_by_one"

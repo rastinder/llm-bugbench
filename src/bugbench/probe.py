@@ -182,7 +182,7 @@ def _probe_file(module_src: str, calls: list[tuple[str, str]], tag: str) -> str:
             "        PROBES[%r] = 'RAISED:' + type(e).__name__" % fn,
             "    else:",
             "        PROBES[%r] = _norm(_r)" % fn,
-            "    print('PROBE%%s=%%s' %% (%r, PROBES[%r]))" % (fn, fn),
+            "    print('PROBE' + " + repr(fn) + " + '=' + PROBES[" + repr(fn) + "])",
         ]
     return "\n".join(lines) + "\n"
 
