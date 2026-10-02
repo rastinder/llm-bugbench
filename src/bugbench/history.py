@@ -39,6 +39,40 @@ _CONTENT = re.compile(
 _LINE_NO = re.compile(r"^\d+: ", re.M)
 _HEADER = re.compile(r"^<path>.*?</path>\n<type>file</type>\n<content>\n", re.S)
 
+#: The reader caps its output and says so. Measured: 26 of the 28 largest historical pairs
+#: were unparseable for exactly this reason -- the snapshot ended mid-file with an
+#: "(Output capped at 50 KB. Showing lines 2400-3556...)" footer. A naive
+#: ends-with-a-closing-token check accepted those, because the footer ends in a period.
+#:
+#: Truncated snapshots are worse than useless: pairing one against another yields a
+#: "change" that is mostly an artefact of where the cap fell. They are rejected outright.
+CAPPED = re.compile(r"Output capped at [\d.]+\s*(?:KB|MB|bytes)"
+                    r"|Showing lines \d+-\d+", re.I)
+
+
+def is_truncated(payload: str) -> bool:
+    """True when the reader capped or paginated the file body."""
+    return bool(CAPPED.search(payload or ""))
+
+
+def parse_read_output(output: str) -> str | None:
+    """Extract the file body from a ``read`` transcript payload, or None.
+
+    None for anything capped or paginated: a partial body cannot be paired with anything,
+    because the apparent difference from a complete body would be an artefact.
+    """
+    if not output or "<content>" not in output:
+        return None
+    if is_truncated(output):
+        return None
+    m = _CONTENT.search(output)
+    if not m:
+        return None
+    body = m.group(1)
+    # Transcript lines are prefixed "N: "; strip it, but only where every line carries it.
+    stripped = _LINE_NO.sub("", body)
+    return stripped if stripped else body
+
 #: Files that must never be used as task material. The corpus contains reads of the
 #: credential store and config files that hold live secrets; a task built from one of those
 #: would put a real key into a model prompt and into a results file.
@@ -50,18 +84,6 @@ def is_forbidden(path: str) -> bool:
     low = (path or "").lower()
     return any(m in low for m in FORBIDDEN)
 
-
-def parse_read_output(output: str) -> str | None:
-    """Extract the file body from a ``read`` transcript payload."""
-    if not output or "<content>" not in output:
-        return None
-    m = _CONTENT.search(output)
-    if not m:
-        return None
-    body = m.group(1)
-    # Transcript lines are prefixed "N: "; strip it, but only where every line carries it.
-    stripped = _LINE_NO.sub("", body)
-    return stripped if stripped else body
 
 
 @dataclass
@@ -117,6 +139,21 @@ class ReplayReport:
                 "files_with_multiple_snapshots": self.multi_snapshot,
                 "real_pairs": len(self.pairs),
                 "anchored_on_disk": sum(1 for p in self.pairs if p.on_disk_matches_after)}
+
+
+#: The ten codebases under test, longest prefix first so nested paths resolve correctly.
+ROOTS_BY_PREFIX = {
+    str(Path.home() / ".opencode-telegram-bot"): Path.home() / ".opencode-telegram-bot",
+    str(Path.home() / "Desktop" / "AutoPilot-Jobs"): Path.home() / "Desktop" / "AutoPilot-Jobs",
+    str(Path.home() / "whatsedit-local"): Path.home() / "whatsedit-local",
+    str(Path.home() / "marketplace-monitor"): Path.home() / "marketplace-monitor",
+    str(Path.home() / "copilot-tool-layer"): Path.home() / "copilot-tool-layer",
+    str(Path.home() / ".fix-backend"): Path.home() / ".fix-backend",
+    str(Path.home() / "copilot-model-audit"): Path.home() / "copilot-model-audit",
+    str(Path.home() / "copilot-fix"): Path.home() / "copilot-fix",
+    str(Path.home() / ".cloakbrowser"): Path.home() / ".cloakbrowser",
+    str(Path.home() / "llm-bugbench"): Path.home() / "llm-bugbench",
+}
 
 
 def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:

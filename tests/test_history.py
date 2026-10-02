@@ -157,3 +157,100 @@ class TestForbiddenSetIsNotEmpty:
     def test_the_set_covers_the_corpus_hazards(self):
         assert any("KEYS" in m for m in FORBIDDEN)
         assert any(".ssh" in m for m in FORBIDDEN)
+
+class TestProbeSafety:
+    """Generated probes must be hermetic: anything touching the clock, network or
+    filesystem would make the oracle unstable and the task unscoreable."""
+
+    def _safe(self, src, name="f", expected_ok=True):
+        """Check probe_safety on the first statement, and separately whether the callable
+        survives extraction. Both must agree, so each is asserted independently rather than
+        short-circuiting on the first failure."""
+        import ast
+        from bugbench.probe import extract_callables, probe_safe
+        node = ast.parse(src).body[0]
+        ok, why = probe_safe(node)
+        assert ok is expected_ok, f"safety said {ok} ({why})"
+        found = extract_callables(src)
+        if not expected_ok:
+            assert found == [], "an unsafe callable must not be extractable"
+        return found
+
+    def test_pure_function_is_accepted(self):
+        assert self._safe("def f():\n    return 1 + 1\n")
+
+    @pytest.mark.parametrize("src", [
+        "def f():\n    return open('/etc/passwd').read()\n",
+        "def f():\n    import socket\n    return 1\n",
+        "def f():\n    return os.environ.get('X')\n",
+        "def f():\n    return random.random()\n",
+        "def f():\n    import time\n    return time.time()\n",
+    ])
+    def test_unsafe_callables_are_rejected_and_not_extracted(self, src):
+        import ast
+        from bugbench.probe import extract_callables, probe_safe
+        ok, why = probe_safe(ast.parse(src).body[0])
+        assert not ok, why
+        assert extract_callables(src) == []
+
+    def test_annotated_parameters_are_allowed(self):
+        """Regression: requiring zero-argument callables found a candidate in 1 of 28 real
+        pairs, because production code takes arguments. Annotated params can be given a
+        literal, so they are admitted."""
+        from bugbench.probe import extract_callables
+        assert [n for n, _ in extract_callables("def f(a: int) -> int:\n    return a\n")]
+
+    def test_unannotated_parameters_are_skipped(self):
+        """No annotation means no principled literal, and a fabricated fixture would make
+        the oracle a test of the fixture."""
+        from bugbench.probe import extract_callables
+        assert extract_callables("def f(a, b):\n    return a + b\n") == []
+
+    def test_too_many_parameters_are_skipped(self):
+        from bugbench.probe import extract_callables
+        assert extract_callables("def f(a: int, b: int, c: int) -> int:\n    return a\n") == []
+
+    def test_literal_args_are_derived_from_annotations(self):
+        from bugbench.probe import literal_args
+        assert literal_args("def f(n: int) -> int:\n    return n\n", "f") == "1"
+        assert literal_args("def f(s: str) -> str:\n    return s\n", "f") == '"x"'
+        assert literal_args("def f() -> int:\n    return 1\n", "f") == ""
+
+    def test_unknown_annotation_yields_no_args(self):
+        from bugbench.probe import literal_args
+        assert literal_args("def f(x: Widget) -> None:\n    return None\n", "f") is None
+
+    def test_dunder_methods_are_skipped(self):
+        assert self._safe("def __repr__():\n    return 'x'\n") == []
+
+    def test_unparseable_source_yields_nothing(self):
+        from bugbench.probe import extract_callables
+        assert extract_callables("def broken(:\n") == []
+
+
+class TestTruncatedSnapshots:
+    """Regression: 26 of the 28 largest historical pairs were unparseable because the reader
+    caps output at 50 KB and paginates. A naive ends-with-a-closing-token check accepted
+    those, since the footer ends in a period."""
+
+    CAPPED = ("<path>/tmp/x.py</path>\n<type>file</type>\n<content>\n"
+              "1: def f():\n2:     return 1\n\n"
+              "(Output capped at 50 KB. Showing lines 2400-3556. Use offset=3557 to continue.)\n"
+              "</content>")
+
+    PAGED = ("<path>/tmp/x.py</path>\n<type>file</type>\n<content>\n"
+             "1: def f():\n\n(Showing lines 1-1305)\n</content>")
+
+    def test_capped_output_is_rejected(self):
+        assert parse_read_output(self.CAPPED) is None
+
+    def test_paginated_output_is_rejected(self):
+        assert parse_read_output(self.PAGED) is None
+
+    def test_complete_output_is_accepted(self):
+        assert "def f():" in (parse_read_output(READ) or "")
+
+    def test_truncation_detector_is_directly_usable(self):
+        from bugbench.history import is_truncated
+        assert is_truncated("Output capped at 50 KB")
+        assert not is_truncated("def f():\n    return 1\n")
