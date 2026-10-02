@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 import shutil
 import sys
 from dataclasses import dataclass, field
@@ -86,7 +87,11 @@ def extract_callables(source: str, limit: int = 40) -> list[tuple[str, str]]:
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        if node.name.startswith("_") or node.name in BANNED:
+        # Dunders are skipped, but single-underscore helpers are NOT. Production code is
+        # mostly private helpers, and skipping them is what left mass_report.py with a
+        # single usable probe -- the `_centre`/`_contains`/`_overlaps`/`_area` geometry
+        # functions, which are pure and trivially constructible, were all invisible.
+        if node.name.startswith("__") or node.name in BANNED:
             continue
         ok, _why = probe_safe(node)
         if not ok:
@@ -110,11 +115,30 @@ def extract_callables(source: str, limit: int = 40) -> list[tuple[str, str]]:
     return [(n, s) for n, s, _ in out]
 
 
+#: Value templates for annotations that are otherwise unconstructible from literals. Kept
+#: small and hermetic on purpose: these stand in for the geometry and container types that
+#: real modules take, and nothing that touches IO or time.
+ANNOTATION_VALUES = {
+    "tuple[int, int, int, int]": "(0, 0, 10, 10)",
+    "tuple[int, int]": "(0, 0)",
+    "path": None,        # handled below; needs the real class from the module
+    "list[dict]": "[]",
+    "list[str]": "[]",
+    "set[str]": "set()",
+}
+
+
 def literal_args(source: str, fn_name: str) -> str | None:
     """Build the argument list for a probe from the module's own literals.
 
     Types are matched to plausible values so a `count: int` gets 1 and a `name: str` gets a
     short string. Returning None means no plausible call exists, and the probe is skipped.
+
+    Extended beyond primitives because the measured blocker was not annotations but domain
+    objects: in ``mass_report.py`` the pure geometry helpers take
+    ``tuple[int, int, int, int]`` and were unprobeable until rectangles were added here.
+    Only hermetic shapes are included -- geometry, containers, and paths built from the
+    module's own imported Path class.
     """
     try:
         tree = ast.parse(source)
@@ -147,6 +171,23 @@ def literal_args(source: str, fn_name: str) -> str | None:
                     args.append('{"a": 1}')
                 elif "bytes" in low:
                     args.append('b"x"')
+                elif low.startswith("tuple[") and low.endswith("]"):
+                    # Arity from the actual annotation, not a substring count: counting
+                    # "int" inside "tuple[int, int, int, int]" is fine by luck, but
+                    # "tuple[int, int, int]" written with a space or a nested element
+                    # miscounts, and a wrong arity raises TypeError inside the probe --
+                    # which then reads as "no defect" rather than as a broken probe.
+                    inner = low[low.index("[") + 1:-1]
+                    parts = [x.strip() for x in inner.split(",") if x.strip()]
+                    if parts and all(x in ("int", "float") for x in parts):
+                        args.append("(" + ", ".join(["0"] * len(parts)) +
+                                    ("," if len(parts) == 1 else "") + ")")
+                    else:
+                        return None
+                elif low == "path" or low.endswith("path"):
+                    args.append("__import__('pathlib').Path('.')")
+                elif low.startswith("list[dict]") or low == "list":
+                    args.append("[]")
                 else:
                     return None
             return ", ".join(args)
@@ -212,9 +253,13 @@ def _run_probe(repo: Path, module_rel: str, module_src: str, probe_src: str,
                        env=grader_env())
     out: dict[str, str] = {}
     for line in r.stdout.splitlines():
-        if line.startswith("PROBE"):
-            k, _, v = line[5:].partition("=")
-            out[k.strip()] = v.strip()
+        # With -s, pytest interleaves progress dots into stdout, so a probe line can
+        # arrive as ".PROBEarea=RAISED:TypeError". Matching only line-start silently
+        # dropped every probe but the first, which looked like "the host has one usable
+        # probe" rather than like a parser bug.
+        m = re.search(r"PROBE(\S+?)=(.*)$", line)
+        if m:
+            out[m.group(1).strip()] = m.group(2).strip()
     shutil.rmtree(work, ignore_errors=True)
     return out
 

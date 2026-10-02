@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 import shutil
 import sys
 from dataclasses import dataclass, field
@@ -132,6 +133,19 @@ def _compile(src: str) -> ast.AST | None:
         return None
 
 
+def _function_spans(source: str, names: list[str]) -> list[tuple[int, int]]:
+    """(start, end) line spans of the named functions."""
+    tree = _compile(source)
+    if tree is None:
+        return []
+    out = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in names:
+            end = getattr(node, "end_lineno", node.lineno) or node.lineno
+            out.append((node.lineno, end))
+    return out
+
+
 def find_defect_sites(source: str, limit: int = 40) -> list[tuple[str, int, str, str, str]]:
     """Candidate (class, lineno, original, mutated, why) sites in a host file.
 
@@ -222,9 +236,13 @@ def _run(repo: Path, module_rel: str, module_src: str, probe_src: str,
                        cwd=d, capture_output=True, text=True, timeout=240, env=grader_env())
     out: dict[str, str] = {}
     for line in r.stdout.splitlines():
-        if line.startswith("PROBE"):
-            k, _, v = line[5:].partition("=")
-            out[k.strip()] = v.strip()
+        # With -s, pytest interleaves progress dots into stdout, so a probe line can
+        # arrive as ".PROBEarea=RAISED:TypeError". Matching only line-start silently
+        # dropped every probe but the first, which looked like "the host has one usable
+        # probe" rather than like a parser bug.
+        m = re.search(r"PROBE(\S+?)=(.*)$", line)
+        if m:
+            out[m.group(1).strip()] = m.group(2).strip()
     shutil.rmtree(work, ignore_errors=True)
     return out
 
@@ -249,6 +267,13 @@ def build_host_task(repo: Path, module_rel: str, after_src: str, task_id: str,
     if not calls:
         task.reject_reason = "no hermetically-callable function in the host"
         return task
+    # Line spans of the functions we can actually probe. Restricting defect injection to
+    # them is what makes a defect gradable: mutating a line inside a function that no probe
+    # covers produces a task whose oracle cannot see the change at all.
+    spans = _function_spans(after_src, [n for n, _ in calls])
+    if not calls:
+        task.reject_reason = "no hermetically-callable function in the host"
+        return task
 
     baseline = _run(repo, module_rel, after_src,
                     _probe_source(after_src, calls, "base"), work / "base")
@@ -263,6 +288,8 @@ def build_host_task(repo: Path, module_rel: str, after_src: str, task_id: str,
     for cls, ln, original, mutated, _why in find_defect_sites(after_src):
         if len(accepted) >= n_bugs or ln in used_lines:
             continue
+        if not any(lo <= ln <= hi for lo, hi in spans):
+            continue          # inside an unprobeable function: not gradable
         candidate = apply_bug(working, original, mutated)
         if candidate is None:
             continue
