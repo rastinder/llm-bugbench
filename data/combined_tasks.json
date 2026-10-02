@@ -1,0 +1,570 @@
+[
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_45023dc72f88",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 2,
+    "span_lines": 25,
+    "difficulty": "moderate",
+    "bugs": [
+      {
+        "bug_id": "mut_45023dc72f88",
+        "line": 135,
+        "operator": "lte",
+        "difficulty": "moderate",
+        "symbol": "is_cancel_phrase",
+        "test_node": "ConversationMachineTests.py::test_cancel_must_be_the_whole_phrase"
+      },
+      {
+        "bug_id": "mut_793312b82e1d",
+        "line": 160,
+        "operator": "gte",
+        "difficulty": "moderate",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_a_different_sentence_is_not_treated_as_echo"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_793312b82e1d",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 2,
+    "span_lines": 10,
+    "difficulty": "moderate",
+    "bugs": [
+      {
+        "bug_id": "mut_793312b82e1d",
+        "line": 160,
+        "operator": "gte",
+        "difficulty": "moderate",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_a_different_sentence_is_not_treated_as_echo"
+      },
+      {
+        "bug_id": "mut_3d6336d19745",
+        "line": 170,
+        "operator": "gt",
+        "difficulty": "moderate",
+        "symbol": "split_for_voice",
+        "test_node": "SummaryTests.py::test_summary_keeps_only_the_first_few_sentences"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_3d6336d19745",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 2,
+    "span_lines": 58,
+    "difficulty": "moderate",
+    "bugs": [
+      {
+        "bug_id": "mut_3d6336d19745",
+        "line": 170,
+        "operator": "gt",
+        "difficulty": "moderate",
+        "symbol": "split_for_voice",
+        "test_node": "SummaryTests.py::test_summary_keeps_only_the_first_few_sentences"
+      },
+      {
+        "bug_id": "mut_b24e960acb21",
+        "line": 112,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "Action",
+        "test_node": "ConversationMachineTests.py::test_ordinary_command_runs_immediately"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_b24e960acb21",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 2,
+    "span_lines": 33,
+    "difficulty": "trivial",
+    "bugs": [
+      {
+        "bug_id": "mut_b24e960acb21",
+        "line": 112,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "Action",
+        "test_node": "ConversationMachineTests.py::test_ordinary_command_runs_immediately"
+      },
+      {
+        "bug_id": "mut_f5768bdc1be0",
+        "line": 145,
+        "operator": "true",
+        "difficulty": "trivial",
+        "symbol": "is_confirmation",
+        "test_node": "ConversationMachineTests.py::test_confirmation_is_single_use"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_f5768bdc1be0",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 2,
+    "span_lines": 14,
+    "difficulty": "trivial",
+    "bugs": [
+      {
+        "bug_id": "mut_f5768bdc1be0",
+        "line": 145,
+        "operator": "true",
+        "difficulty": "trivial",
+        "symbol": "is_confirmation",
+        "test_node": "ConversationMachineTests.py::test_confirmation_is_single_use"
+      },
+      {
+        "bug_id": "mut_4176f8144448",
+        "line": 159,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_empty_inputs_are_not_echo"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_45023dc72f88",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 3,
+    "span_lines": 35,
+    "difficulty": "hard",
+    "bugs": [
+      {
+        "bug_id": "mut_45023dc72f88",
+        "line": 135,
+        "operator": "lte",
+        "difficulty": "moderate",
+        "symbol": "is_cancel_phrase",
+        "test_node": "ConversationMachineTests.py::test_cancel_must_be_the_whole_phrase"
+      },
+      {
+        "bug_id": "mut_793312b82e1d",
+        "line": 160,
+        "operator": "gte",
+        "difficulty": "moderate",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_a_different_sentence_is_not_treated_as_echo"
+      },
+      {
+        "bug_id": "mut_3d6336d19745",
+        "line": 170,
+        "operator": "gt",
+        "difficulty": "moderate",
+        "symbol": "split_for_voice",
+        "test_node": "SummaryTests.py::test_summary_keeps_only_the_first_few_sentences"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_793312b82e1d",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 3,
+    "span_lines": 58,
+    "difficulty": "hard",
+    "bugs": [
+      {
+        "bug_id": "mut_793312b82e1d",
+        "line": 160,
+        "operator": "gte",
+        "difficulty": "moderate",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_a_different_sentence_is_not_treated_as_echo"
+      },
+      {
+        "bug_id": "mut_3d6336d19745",
+        "line": 170,
+        "operator": "gt",
+        "difficulty": "moderate",
+        "symbol": "split_for_voice",
+        "test_node": "SummaryTests.py::test_summary_keeps_only_the_first_few_sentences"
+      },
+      {
+        "bug_id": "mut_b24e960acb21",
+        "line": 112,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "Action",
+        "test_node": "ConversationMachineTests.py::test_ordinary_command_runs_immediately"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_3d6336d19745",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 3,
+    "span_lines": 58,
+    "difficulty": "hard",
+    "bugs": [
+      {
+        "bug_id": "mut_3d6336d19745",
+        "line": 170,
+        "operator": "gt",
+        "difficulty": "moderate",
+        "symbol": "split_for_voice",
+        "test_node": "SummaryTests.py::test_summary_keeps_only_the_first_few_sentences"
+      },
+      {
+        "bug_id": "mut_b24e960acb21",
+        "line": 112,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "Action",
+        "test_node": "ConversationMachineTests.py::test_ordinary_command_runs_immediately"
+      },
+      {
+        "bug_id": "mut_f5768bdc1be0",
+        "line": 145,
+        "operator": "true",
+        "difficulty": "trivial",
+        "symbol": "is_confirmation",
+        "test_node": "ConversationMachineTests.py::test_confirmation_is_single_use"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_b24e960acb21",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 3,
+    "span_lines": 47,
+    "difficulty": "trivial",
+    "bugs": [
+      {
+        "bug_id": "mut_b24e960acb21",
+        "line": 112,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "Action",
+        "test_node": "ConversationMachineTests.py::test_ordinary_command_runs_immediately"
+      },
+      {
+        "bug_id": "mut_f5768bdc1be0",
+        "line": 145,
+        "operator": "true",
+        "difficulty": "trivial",
+        "symbol": "is_confirmation",
+        "test_node": "ConversationMachineTests.py::test_confirmation_is_single_use"
+      },
+      {
+        "bug_id": "mut_4176f8144448",
+        "line": 159,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_empty_inputs_are_not_echo"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_45023dc72f88",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 4,
+    "span_lines": 58,
+    "difficulty": "hard",
+    "bugs": [
+      {
+        "bug_id": "mut_45023dc72f88",
+        "line": 135,
+        "operator": "lte",
+        "difficulty": "moderate",
+        "symbol": "is_cancel_phrase",
+        "test_node": "ConversationMachineTests.py::test_cancel_must_be_the_whole_phrase"
+      },
+      {
+        "bug_id": "mut_793312b82e1d",
+        "line": 160,
+        "operator": "gte",
+        "difficulty": "moderate",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_a_different_sentence_is_not_treated_as_echo"
+      },
+      {
+        "bug_id": "mut_3d6336d19745",
+        "line": 170,
+        "operator": "gt",
+        "difficulty": "moderate",
+        "symbol": "split_for_voice",
+        "test_node": "SummaryTests.py::test_summary_keeps_only_the_first_few_sentences"
+      },
+      {
+        "bug_id": "mut_b24e960acb21",
+        "line": 112,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "Action",
+        "test_node": "ConversationMachineTests.py::test_ordinary_command_runs_immediately"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_793312b82e1d",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 4,
+    "span_lines": 58,
+    "difficulty": "hard",
+    "bugs": [
+      {
+        "bug_id": "mut_793312b82e1d",
+        "line": 160,
+        "operator": "gte",
+        "difficulty": "moderate",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_a_different_sentence_is_not_treated_as_echo"
+      },
+      {
+        "bug_id": "mut_3d6336d19745",
+        "line": 170,
+        "operator": "gt",
+        "difficulty": "moderate",
+        "symbol": "split_for_voice",
+        "test_node": "SummaryTests.py::test_summary_keeps_only_the_first_few_sentences"
+      },
+      {
+        "bug_id": "mut_b24e960acb21",
+        "line": 112,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "Action",
+        "test_node": "ConversationMachineTests.py::test_ordinary_command_runs_immediately"
+      },
+      {
+        "bug_id": "mut_f5768bdc1be0",
+        "line": 145,
+        "operator": "true",
+        "difficulty": "trivial",
+        "symbol": "is_confirmation",
+        "test_node": "ConversationMachineTests.py::test_confirmation_is_single_use"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": ".opencode-telegram-bot__voice_call_agent_core_py__mut_3d6336d19745",
+    "codebase": ".opencode-telegram-bot",
+    "module": "voice_call/agent_core.py",
+    "language": "python",
+    "bugs_total": 4,
+    "span_lines": 58,
+    "difficulty": "hard",
+    "bugs": [
+      {
+        "bug_id": "mut_3d6336d19745",
+        "line": 170,
+        "operator": "gt",
+        "difficulty": "moderate",
+        "symbol": "split_for_voice",
+        "test_node": "SummaryTests.py::test_summary_keeps_only_the_first_few_sentences"
+      },
+      {
+        "bug_id": "mut_b24e960acb21",
+        "line": 112,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "Action",
+        "test_node": "ConversationMachineTests.py::test_ordinary_command_runs_immediately"
+      },
+      {
+        "bug_id": "mut_f5768bdc1be0",
+        "line": 145,
+        "operator": "true",
+        "difficulty": "trivial",
+        "symbol": "is_confirmation",
+        "test_node": "ConversationMachineTests.py::test_confirmation_is_single_use"
+      },
+      {
+        "bug_id": "mut_4176f8144448",
+        "line": 159,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "looks_like_echo",
+        "test_node": "EchoCanaryTests.py::test_empty_inputs_are_not_echo"
+      }
+    ],
+    "green_tests": [
+      "tests/test_agent_core.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "copilot-model-audit__check_model_menu_py__mut_f35cf9a8a777",
+    "codebase": "copilot-model-audit",
+    "module": "check_model_menu.py",
+    "language": "python",
+    "bugs_total": 2,
+    "span_lines": 6,
+    "difficulty": "moderate",
+    "bugs": [
+      {
+        "bug_id": "mut_f35cf9a8a777",
+        "line": 196,
+        "operator": "lt",
+        "difficulty": "moderate",
+        "symbol": "run_audit",
+        "test_node": "ModelMenuAuditTests.py::test_alert_failure_keeps_previous_state_for_retry"
+      },
+      {
+        "bug_id": "mut_52188f8e7650",
+        "line": 202,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "run_audit",
+        "test_node": "ModelMenuAuditTests.py::test_malformed_snapshot_is_not_overwritten"
+      }
+    ],
+    "green_tests": [
+      "test_check_model_menu.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "copilot-model-audit__check_model_menu_py__mut_52188f8e7650",
+    "codebase": "copilot-model-audit",
+    "module": "check_model_menu.py",
+    "language": "python",
+    "bugs_total": 2,
+    "span_lines": 4,
+    "difficulty": "trivial",
+    "bugs": [
+      {
+        "bug_id": "mut_52188f8e7650",
+        "line": 202,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "run_audit",
+        "test_node": "ModelMenuAuditTests.py::test_malformed_snapshot_is_not_overwritten"
+      },
+      {
+        "bug_id": "mut_3e55b95e7a57",
+        "line": 206,
+        "operator": "one",
+        "difficulty": "trivial",
+        "symbol": "run_audit",
+        "test_node": "ModelMenuAuditTests.py::test_catalog_failure_preserves_last_known_good_state"
+      }
+    ],
+    "green_tests": [
+      "test_check_model_menu.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "copilot-model-audit__check_model_menu_py__mut_f35cf9a8a777",
+    "codebase": "copilot-model-audit",
+    "module": "check_model_menu.py",
+    "language": "python",
+    "bugs_total": 3,
+    "span_lines": 10,
+    "difficulty": "hard",
+    "bugs": [
+      {
+        "bug_id": "mut_f35cf9a8a777",
+        "line": 196,
+        "operator": "lt",
+        "difficulty": "moderate",
+        "symbol": "run_audit",
+        "test_node": "ModelMenuAuditTests.py::test_alert_failure_keeps_previous_state_for_retry"
+      },
+      {
+        "bug_id": "mut_52188f8e7650",
+        "line": 202,
+        "operator": "false",
+        "difficulty": "trivial",
+        "symbol": "run_audit",
+        "test_node": "ModelMenuAuditTests.py::test_malformed_snapshot_is_not_overwritten"
+      },
+      {
+        "bug_id": "mut_3e55b95e7a57",
+        "line": 206,
+        "operator": "one",
+        "difficulty": "trivial",
+        "symbol": "run_audit",
+        "test_node": "ModelMenuAuditTests.py::test_catalog_failure_preserves_last_known_good_state"
+      }
+    ],
+    "green_tests": [
+      "test_check_model_menu.py"
+    ],
+    "verified": false,
+    "reject_reason": ""
+  }
+]
