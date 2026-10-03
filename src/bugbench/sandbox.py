@@ -41,6 +41,7 @@ SKIP_ANYWHERE = ("data", "logs", "var", "tmp", ".cache", "cache", "coverage",
 
 #: Any single directory larger than this is not source we need.
 MAX_DIR_BYTES = 8 * 1024 * 1024
+MAX_FILE_BYTES = 8 * 1024 * 1024
 
 
 def _skippable(item: Path) -> bool:
@@ -115,11 +116,30 @@ def build_sandbox(repo: Path, dest: Path, drop_tests: bool = False) -> Path:
                     continue
             except OSError:
                 continue
-            shutil.copytree(item, dest / name, ignore=_copy_filter, dirs_exist_ok=True)
+            try:
+                shutil.copytree(item, dest / name, ignore=_copy_filter, dirs_exist_ok=True)
+            except (OSError, shutil.Error):
+                # One unreadable file, socket or dangling symlink deep in a large tree must
+                # not cost the whole task. Roots here include a home bin directory holding
+                # executables this user cannot read; the module under test and its imports
+                # are unaffected.
+                continue
         else:
             if name.endswith((".pyc", ".pyo")):
                 continue
-            shutil.copy2(item, dest / name)
+            try:
+                size = item.stat().st_size
+            except OSError:
+                continue
+            if size > MAX_FILE_BYTES:
+                # Large non-source artefacts (herdr binaries, browsers) never get imported
+                # by a test and were blowing the sandbox to nearly a gigabyte, so the repo
+                # failed a simulated size gate. Skipping them keeps a runnable test copy.
+                continue
+            try:
+                shutil.copy2(item, dest / name)
+            except OSError:
+                continue
 
     if drop_tests:
         for path in sorted(dest.rglob("*"), reverse=True):
@@ -165,6 +185,9 @@ def dir_size(path: Path, skip_prunable: bool = False) -> int:
 
 
 def grader_env(extra: dict | None = None) -> dict:
+    """Environment for a test run: fixed timezone/locale, scrubbed import path, and no
+    bytecode caching -- otherwise a run could compile the state we are about to replace
+    and have the next run silently reuse it."""
     """A deterministic, leak-resistant environment for grading.
 
     Inheriting the caller's ``PYTHONPATH`` would let the real (unmutated) source tree
@@ -187,6 +210,7 @@ def grader_env(extra: dict | None = None) -> dict:
     })
     if extra:
         env.update(extra)
+    env.setdefault("PYTHONDONTWRITEBYTECODE", "1")
     return env
 
 
