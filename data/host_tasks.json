@@ -1,1 +1,229 @@
-[]
+[
+  {
+    "task_id": "rec__herdr_supervisor__1787327878875",
+    "codebase": "bin",
+    "repo": "/home/ras/.local/bin",
+    "module": "herdr_supervisor.py",
+    "test_rel": "test_herdr_supervisor.py",
+    "focus_ids": [],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1787327878875,
+    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__herdr_supervisor__1787329596361",
+    "codebase": "bin",
+    "repo": "/home/ras/.local/bin",
+    "module": "herdr_supervisor.py",
+    "test_rel": "test_herdr_supervisor.py",
+    "focus_ids": [
+      "TestSupervisorPass::test_nudge_uses_confirmed_delivery"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1787329596361,
+    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__herdr_supervisor__1787349499727",
+    "codebase": "bin",
+    "repo": "/home/ras/.local/bin",
+    "module": "herdr_supervisor.py",
+    "test_rel": "test_herdr_supervisor.py",
+    "focus_ids": [
+      "TestSupervisorPass::test_excluded_pane_never_touched",
+      "TestSupervisorPass::test_stale_state_cleaned_when_pane_disappears"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1787349499727,
+    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__herdr_supervisor__1787350107899",
+    "codebase": "bin",
+    "repo": "/home/ras/.local/bin",
+    "module": "herdr_supervisor.py",
+    "test_rel": "test_herdr_supervisor.py",
+    "focus_ids": [
+      "TestStopWatcher::test_detect_stops_finds_working_to_idle",
+      "TestStopWatcher::test_excluded_pane_not_watched",
+      "TestStopWatcher::test_tick_once_ignores_still_working",
+      "TestStopWatcher::test_tick_once_nudges_stopped_agent"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1787350107899,
+    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__herdr_supervisor__1790296045258",
+    "codebase": "bin",
+    "repo": "/home/ras/.local/bin",
+    "module": "herdr_supervisor.py",
+    "test_rel": "test_herdr_supervisor.py",
+    "focus_ids": [
+      "TestSupervisorPass::test_malformed_action_is_none"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790296045258,
+    "session_id": "ses_f2e6f0fcdffeQ8XaGRqEvvJU6D",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__pi_network_quality__1790275306010",
+    "codebase": "quality",
+    "repo": "/home/ras/pr-ai/quality",
+    "module": "pi_network_quality.py",
+    "test_rel": "test_pi_network_quality.py",
+    "focus_ids": [
+      "PiNetworkQualityTest::test_prompt_contains_no_precomputed_target"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790275306010,
+    "session_id": "ses_f2f4e3d5cffersVLUR7QleMESa",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__pi_network_quality__1790277095470",
+    "codebase": "quality",
+    "repo": "/home/ras/pr-ai/quality",
+    "module": "pi_network_quality.py",
+    "test_rel": "test_pi_network_quality.py",
+    "focus_ids": [
+      "PiNetworkQualityTest::test_prompt_contains_no_precomputed_target"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790277095470,
+    "session_id": "ses_f2f4e3d5cffersVLUR7QleMESa",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__pi_network_quality__1790277455685",
+    "codebase": "quality",
+    "repo": "/home/ras/pr-ai/quality",
+    "module": "pi_network_quality.py",
+    "test_rel": "test_pi_network_quality.py",
+    "focus_ids": [
+      "PiNetworkQualityTest::test_rejects_successful_tool_without_evidence_output"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790277455685,
+    "session_id": "ses_f2f4e3d5cffersVLUR7QleMESa",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__monitor__1790303646272",
+    "codebase": "marketplace-monitor",
+    "repo": "/home/ras/marketplace-monitor",
+    "module": "monitor.py",
+    "test_rel": "tests/test_monitor.py",
+    "focus_ids": [
+      "MonitorTests::test_extract_listings_ignores_controls_and_cards"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790303646272,
+    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__monitor__1790361759492",
+    "codebase": "marketplace-monitor",
+    "repo": "/home/ras/marketplace-monitor",
+    "module": "monitor.py",
+    "test_rel": "tests/test_monitor.py",
+    "focus_ids": [],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790361759492,
+    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__monitor__1790389642770",
+    "codebase": "marketplace-monitor",
+    "repo": "/home/ras/marketplace-monitor",
+    "module": "monitor.py",
+    "test_rel": "tests/test_monitor.py",
+    "focus_ids": [
+      "MonitorTests::test_calendar_management_is_service",
+      "MonitorTests::test_fall_cleanup_is_service",
+      "MonitorTests::test_grow_business_offer_is_service",
+      "MonitorTests::test_handyman_trade_word_is_service",
+      "MonitorTests::test_it_solutions_is_service",
+      "MonitorTests::test_laser_engraving_is_service",
+      "MonitorTests::test_offer_language_alone_is_service"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790389642770,
+    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__monitor__1790389703313",
+    "codebase": "marketplace-monitor",
+    "repo": "/home/ras/marketplace-monitor",
+    "module": "monitor.py",
+    "test_rel": "tests/test_monitor.py",
+    "focus_ids": [
+      "MonitorTests::test_card_fragments_collapse_to_one_listing",
+      "MonitorTests::test_collapsed_fragments_keep_longest_title",
+      "MonitorTests::test_extract_listings_ignores_controls_and_cards"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790389703313,
+    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
+    "verified": true,
+    "reject_reason": ""
+  },
+  {
+    "task_id": "rec__feedback__1790829085469",
+    "codebase": "llm-bugbench",
+    "repo": "/home/ras/llm-bugbench",
+    "module": "src/bugbench/feedback.py",
+    "test_rel": "tests/test_feedback.py",
+    "focus_ids": [],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790829085469,
+    "session_id": "ses_f14be9002ffei6pkJwJQ9oytNR",
+    "verified": true,
+    "reject_reason": ""
+  }
+]

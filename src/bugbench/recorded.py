@@ -126,9 +126,15 @@ def _test_candidates(module_rel: str) -> list[str]:
     out = []
     if stem.startswith("test_"):
         return out                       # a test is not a source file
-    for name in (f"{pre}test_{stem}.py", f"{pre}{stem}_test.py", f"{pre}test{stem}.py"):
-        if name not in out:
-            out.append(name)
+    patterns = [
+        f"{pre}test_{stem}.py", f"{pre}{stem}_test.py", f"{pre}test{stem}.py",
+        f"{pre}tests/test_{stem}.py", f"{pre}tests/{stem}_test.py",
+        f"tests/test_{stem}.py", f"tests/{stem}_test.py",
+        f"test/test_{stem}.py", f"test/{stem}_test.py",
+    ]
+    for p in patterns:
+        if p not in out:
+            out.append(p)
     return out
 
 
@@ -137,28 +143,20 @@ def _defect_size(state: State) -> int:
 
 
 def _added_test_ids(before: str, after: str) -> list[str]:
-    """Node ids of test methods the edit added or changed.
-
-    These are the assertions that actually discriminate a fix: they run on the buggy
-    source and must fail there, and run on the fixed source and must pass. Running the
-    whole test file would mix them in with pre-existing assertions that were already
-    passing and that, on some intermediate state, may not have moved at all -- that is
-    how a legitimate fix got reported as "the recorded test does not pass on the fixed
-    state" when in fact only one added assertion was doing the work.
-    """
+    """Node ids of test methods the edit added or changed."""
     def methods(text: str) -> dict[str, str]:
         try:
             tree = _ast.parse(text)
         except SyntaxError:
             return {}
         out: dict[str, str] = {}
-        for node in _ast.walk(tree):
+        for node in tree.body:
             if isinstance(node, _ast.ClassDef):
                 for item in node.body:
-                    if isinstance(item, _ast.FunctionDef) and item.name.startswith("test"):
+                    if isinstance(item, (_ast.FunctionDef, _ast.AsyncFunctionDef)) and item.name.startswith("test"):
                         out[f"{node.name}::{item.name}"] = _ast.get_source_segment(text, item) or ""
-            elif isinstance(node, _ast.FunctionDef) and node.name.startswith("test"):
-                out.setdefault(node.name, _ast.get_source_segment(text, node) or "")
+            elif isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef)) and node.name.startswith("test"):
+                out[node.name] = _ast.get_source_segment(text, node) or ""
         return out
     b, a = methods(before), methods(after)
     added = {k: v for k, v in a.items() if k not in b or b[k] != v}
@@ -192,53 +190,65 @@ def content_at(tl: Timeline, when: int) -> str | None:
 
 
 def candidate_tasks(db: sqlite3.Connection, roots: dict[str, str],
-                    limit: int = 40) -> list[RecordedTask]:
+                    limit: int = 60) -> list[RecordedTask]:
     """Every (fix, recorded oracle) pair found in the database, unverified.
 
     Ordered by how much the fix changed and how close the test followed, so a caller that
     wants only the strongest slice gets it by truncating.
     """
-    from .timeline import edited_files
+    from .timeline import load_all_timelines
 
+    timelines = load_all_timelines(db)
     by_path: dict[str, list[State]] = {}
-    for path, n_edits, _w in edited_files(db, "%"):
-        if not path.endswith(".py") or n_edits < 2:
+    for path, tl in timelines.items():
+        if len(tl.edits) < 2:
             continue
         found = _repo_of(path, roots) or discover_root(path)
         if not found:
             continue
-        try:
-            states = python_states(db, path)
-        except Exception:
-            continue
-        if states:
-            by_path[path] = states
+        sts = []
+        for st in tl.states():
+            try:
+                ast.parse(st.before)
+                ast.parse(st.after)
+                sts.append(st)
+            except SyntaxError:
+                pass
+        if sts:
+            by_path[path] = sts
+
+    def get_py_states(p: str) -> list[State]:
+        if p in by_path:
+            return by_path[p]
+        tl_item = timelines.get(p)
+        if not tl_item:
+            return []
+        sts_item = []
+        for st_item in tl_item.states():
+            try:
+                ast.parse(st_item.before)
+                ast.parse(st_item.after)
+                sts_item.append(st_item)
+            except SyntaxError:
+                pass
+        return sts_item
 
     out: list[RecordedTask] = []
-    tl_by: dict[str, Timeline] = {}
     for path, states in by_path.items():
         repo, rel = _repo_of(path, roots) or discover_root(path)
         if repo is None:
             continue
-        tests = [t for t in _test_candidates(rel) if t in by_path or _exists(repo, t)]
+        tests = [t for t in _test_candidates(rel) if f"{repo}/{t}" in timelines or _exists(repo, t)]
         if not tests:
             continue
-        try:
-            tl = load_timeline(db, path)
-        except Exception:
-            continue
-        tl_by[path] = tl
+        tl = timelines[path]
         for test_path in tests:
             test_abs = f"{repo}/{test_path}"
-            test_states = by_path.get(test_abs) or python_states(db, test_abs)
+            test_states = get_py_states(test_abs)
             for ts in test_states:
                 grew = len(ts.after) - len(ts.before)
                 if grew <= 0:
                     continue            # a test edit that only shrank adds no oracle
-                # The oracle is the latest source edit caught by this window, paired with
-                # the source exactly as it stood when the test was written. Pairing
-                # ts.after with st.after of some earlier edit mixes two different times
-                # when more than one change landed inside the window.
                 past_states = [x for x in states if x.edit.time <= ts.time]
                 if not past_states:
                     continue
@@ -250,10 +260,10 @@ def candidate_tasks(db: sqlite3.Connection, roots: dict[str, str],
                 after = content_at(tl, ts.time)
                 if after is None or after.strip() == st.before.strip():
                     continue
-                focus = []
+                focus = _added_test_ids(ts.before, ts.after)
                 out.append(RecordedTask(
                     task_id=f"rec__{Path(rel).stem}__{st.time}",
-                    repo=repo,
+                    repo=str(repo),
                     module_rel=rel,
                     test_rel=test_path,
                     before_source=st.before,
@@ -276,90 +286,31 @@ def _exists(repo: str, rel: str) -> bool:
     return (Path(repo) / rel).is_file()
 
 
-def verify(task: RecordedTask, work: Path) -> RecordedTask:
-    """Run the recorded test against both states; keep the task only if it discriminates.
-
-    The test must FAIL on the buggy state and PASS on the fixed one. Either other outcome
-    discards the task: passing on both grades nothing, and failing on both means the test is
-    broken or depends on the environment, so admitting it would put a coin flip in the
-    results.
-
-    The sandbox is built once and reused for both runs. Rebuilding per state cost more than
-    the tests did, because several roots here are large trees whose bulk is skipped
-    directories (a Chromium build, a Chrome profile) and pruning them twice is pure waste.
-    """
-    repo = Path(task.repo)
-    if not repo.is_dir():
-        task.reject_reason = f"repository missing: {repo}"
-        return task
-    for text, name in ((task.before_source, "before"), (task.after_source, "after"),
-                       (task.test_source, "test")):
-        try:
-            ast.parse(text)
-        except SyntaxError as exc:
-            task.reject_reason = f"{name} does not parse: {exc.msg}"
-            return task
-
-    shutil.rmtree(work, ignore_errors=True)
-    try:
-        box = build_sandbox(repo, work)
-    except OSError as exc:
-        task.reject_reason = f"sandbox build failed: {exc}"
-        return task
-    if _dir_bytes(box) > MAX_REPO_BYTES:
-        task.reject_reason = "sandbox larger than the limit"
-        return task
-
-    (box / task.module_rel).parent.mkdir(parents=True, exist_ok=True)
-    (box / task.test_rel).parent.mkdir(parents=True, exist_ok=True)
-    (box / task.test_rel).write_text(task.test_source)
-
-    before = _run_test(box, task, task.before_source)
-    if before == PASSED:
-        task.reject_reason = "recorded test already passes on the buggy state"
-        return task
-    # FAILED on a genuine assertion, or BROKE because the buggy source lacks the helper
-    # this fix introduced -- both are evidence the fix is the difference between the two
-    # states, and either would admit a non-discriminating oracle if the after-side were
-    # not held to a strict PASS.
-
-    after = _run_test(box, task, task.after_source)
-    if after is not PASSED:
-        task.reject_reason = "recorded test does not pass on the fixed state"
-        return task
-
-    task.verified = True
-    return task
-
-
 #: Outcomes of one pytest run against one source state.
 PASSED = "passed"
 FAILED = "failed"
 BROKE = "broke"
 
 
-def _run_test(box: Path, task: RecordedTask, source: str) -> str:
+def _run_test(box: Path, task: RecordedTask, source: str,
+              node_ids: list[str] | None = None) -> str:
     """Run the recorded test against one version of the module."""
     (box / task.module_rel).write_text(source)
-    # The before and after source are written moments apart, so Python's timestamp-based
-    # invalidation sees no change and reuses the stale .pyc -- the "after" run would test
-    # the "before" code. Clear bytecode caches so the fresh source is always recompiled.
     for pycache in box.rglob("__pycache__"):
         shutil.rmtree(pycache, ignore_errors=True)
-    if task.focus_ids:
-        node_ids = [f"{task.test_rel}::{fid}" for fid in task.focus_ids]
+    if node_ids is not None:
+        target_nodes = [f"{task.test_rel}::{fid}" for fid in node_ids] if node_ids else [task.test_rel]
+    elif task.focus_ids:
+        target_nodes = [f"{task.test_rel}::{fid}" for fid in task.focus_ids]
     else:
-        node_ids = [task.test_rel]
+        target_nodes = [task.test_rel]
     try:
         proc = subprocess.run(
-            [sys.executable, "-m", "pytest", *node_ids, "-q",
+            [sys.executable, "-m", "pytest", *target_nodes, "-q",
              "--no-header", "-p", "no:cacheprovider"],
             cwd=box, capture_output=True, text=True, timeout=300, env=grader_env())
     except subprocess.TimeoutExpired:
         return BROKE
-    # pytest's exit codes for "nothing usable ran" (collection errors, usage errors, no
-    # tests). Everything else that is non-zero is a genuine test failure, which is exactly
-    # what the buggy state is supposed to produce.
     if proc.returncode in (2, 3, 4, 5) or "INTERNALERROR" in proc.stdout:
         return BROKE
     if proc.returncode == 0:
@@ -367,6 +318,102 @@ def _run_test(box: Path, task: RecordedTask, source: str) -> str:
     (box / ".pytest-out.txt").write_text(proc.stdout[-4000:] + "\n" + proc.stderr[-1500:])
     return FAILED
 
+
+def verify(task: RecordedTask, work: Path) -> RecordedTask:
+    """Run the recorded test against both states; keep the task only if it discriminates.
+
+    The test must FAIL on the buggy state and PASS on the fixed one. Either other outcome
+    discards the task: passing on both grades nothing, and failing on both means the test is
+    broken or depends on the environment, so admitting it would put a coin flip in the
+    results.
+    """
+    repo = Path(task.repo)
+    if not repo.is_dir():
+        task.reject_reason = f"repository missing: {repo}"
+        return task
+    for text_val, name in ((task.before_source, "before"), (task.after_source, "after"),
+                           (task.test_source, "test")):
+        try:
+            ast.parse(text_val)
+        except SyntaxError as exc:
+            task.reject_reason = f"{name} does not parse: {exc.msg}"
+            return task
+
+    def setup_box():
+        shutil.rmtree(work, ignore_errors=True)
+        b = build_sandbox(repo, work)
+        (b / task.module_rel).parent.mkdir(parents=True, exist_ok=True)
+        (b / task.test_rel).parent.mkdir(parents=True, exist_ok=True)
+        (b / task.test_rel).write_text(task.test_source)
+        return b
+
+    try:
+        box = setup_box()
+    except OSError as exc:
+        task.reject_reason = f"sandbox build failed: {exc}"
+        return task
+    if _dir_bytes(box) > MAX_REPO_BYTES:
+        task.reject_reason = "sandbox larger than the limit"
+        return task
+
+    # 1. Test with initial focus_ids if present
+    if task.focus_ids:
+        before = _run_test(box, task, task.before_source)
+        after = _run_test(box, task, task.after_source)
+        if before != PASSED and after == PASSED:
+            task.verified = True
+            return task
+
+    # 2. Try whole test file
+    before_whole = _run_test(box, task, task.before_source, node_ids=[])
+    after_whole = _run_test(box, task, task.after_source, node_ids=[])
+    if before_whole != PASSED and after_whole == PASSED:
+        task.focus_ids = []
+        task.verified = True
+        return task
+
+    # 3. Discover discriminating test nodes if whole file did not cleanly pass
+    try:
+        box = setup_box()
+        (box / task.module_rel).write_text(task.before_source)
+        for p in box.rglob("__pycache__"): shutil.rmtree(p, ignore_errors=True)
+        pb = subprocess.run([sys.executable, "-m", "pytest", task.test_rel, "-v", "--tb=no", "-p", "no:cacheprovider"],
+                            cwd=box, capture_output=True, text=True, timeout=60, env=grader_env())
+        (box / task.module_rel).write_text(task.after_source)
+        for p in box.rglob("__pycache__"): shutil.rmtree(p, ignore_errors=True)
+        pa = subprocess.run([sys.executable, "-m", "pytest", task.test_rel, "-v", "--tb=no", "-p", "no:cacheprovider"],
+                            cwd=box, capture_output=True, text=True, timeout=60, env=grader_env())
+    except Exception:
+        task.reject_reason = "error running test node discovery"
+        return task
+
+    def parse_nodes(stdout):
+        res = {}
+        for line in stdout.splitlines():
+            if "::" in line and ("PASSED" in line or "FAILED" in line):
+                parts = line.split()
+                node = parts[0]
+                res[node] = "PASSED" if "PASSED" in line else "FAILED"
+        return res
+
+    nodes_b = parse_nodes(pb.stdout)
+    nodes_a = parse_nodes(pa.stdout)
+    disc = [n.split("::", 1)[1] for n in nodes_b if nodes_b[n] == "FAILED" and nodes_a.get(n) == "PASSED"]
+
+    if disc:
+        box = setup_box()
+        b_disc = _run_test(box, task, task.before_source, node_ids=disc)
+        a_disc = _run_test(box, task, task.after_source, node_ids=disc)
+        if b_disc != PASSED and a_disc == PASSED:
+            task.focus_ids = disc
+            task.verified = True
+            return task
+
+    if before_whole == PASSED:
+        task.reject_reason = "recorded test already passes on the buggy state"
+    else:
+        task.reject_reason = "recorded test does not pass on the fixed state"
+    return task
 
 def _dir_bytes(p: Path) -> int:
     return sum(f.stat().st_size for f in p.rglob("*") if f.is_file())

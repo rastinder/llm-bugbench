@@ -227,3 +227,42 @@ def python_states(db: sqlite3.Connection, file_path: str) -> list[State]:
         else:
             out.append(st)
     return out
+
+
+def load_all_timelines(db: sqlite3.Connection, pattern: str = "%.py") -> dict[str, Timeline]:
+    """Bulk-load timelines for all matching files in a single pass over the part table."""
+    cur = db.cursor()
+    cur.execute(
+        """
+        SELECT
+            json_extract(data,'$.state.input.filePath') AS path,
+            time_created,
+            session_id,
+            json_extract(data,'$.tool') AS tool,
+            json_extract(data,'$.state.input.content') AS content,
+            json_extract(data,'$.state.input.oldString') AS old_s,
+            json_extract(data,'$.state.input.newString') AS new_s,
+            json_extract(data,'$.state.output') AS output
+        FROM part
+        WHERE json_extract(data,'$.type') = 'tool'
+          AND path LIKE ?
+        ORDER BY time_created
+        """,
+        (pattern,),
+    )
+    timelines: dict[str, Timeline] = {}
+    for path, t, sess, tool, content, old_s, new_s, output in cur.fetchall():
+        if not path:
+            continue
+        if path not in timelines:
+            timelines[path] = Timeline(file_path=path)
+        tl = timelines[path]
+        if tool == 'write' and isinstance(content, str) and content:
+            tl.anchors.append(Anchor(t, 'write', content))
+        elif tool == 'read':
+            got = _strip_read(output)
+            if got is not None:
+                tl.anchors.append(Anchor(t, 'read', got))
+        elif tool == 'edit' and isinstance(old_s, str) and isinstance(new_s, str) and old_s:
+            tl.edits.append(Edit(t, old_s, new_s, sess, path))
+    return timelines

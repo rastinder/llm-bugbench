@@ -1,17 +1,12 @@
-"""Run a cohort against the host panel: real files, several injected defects each.
+"""Run a cohort against the host panel: real files, genuine historical defects.
 
 Same guarantees as the other runners -- the agent's workspace is built with
-``drop_tests=True`` so there is no test file on disk to read, feedback is node-ID only, and
+`drop_tests=True` so there is no test file on disk to read, feedback is node-ID only, and
 the same grading path scores every model.
 
-What differs is what is being measured. The host panel is not synthetic snippets: each task
-is a real file from a real debugging session, carrying several semantically-motivated
-defects (an inverted guard, a boundary moved by one, a dropped condition) rather than
-single-token constant flips. That is the change that broke the ceiling, because a model must
-now reason about control flow instead of pattern-matching a literal.
-
-Per-bug credit is what makes stacking work: a model that finds two of six defects scores
-about a third, which is the intended signal rather than a failure of the model.
+The host panel contains real historical bugs mined from real debugging sessions in
+opencode.db, paired with temporal test oracles that fail on the buggy state and pass on
+the fix.
 """
 
 from __future__ import annotations
@@ -38,58 +33,56 @@ WORK = Path.home() / ".cache" / "bugbench-host-campaign"
 
 PROMPT = """You are fixing a real bug in a real codebase.
 
-The file `{module}` has one or more defects. Find and fix every one of them.
+The file `{module}` has a defect. Find and fix it.
 
 Rules:
 - Work only inside the directory you have been given.
-- Make the minimal change that fixes each defect. Do not refactor or reformat.
+- Make the minimal change that fixes the defect. Do not refactor or reformat.
 - Do not create test files, and do not try to find or read any test suite.
-- When done, reply with one line per defect you fixed.
+- When done, reply with a brief summary of what defect you fixed.
 
-Your edits are graded per defect, so fixing some is worth far more than fixing none.
-Partial credit exists; a wrong guess costs nothing.
+Your edit is graded by whether the relevant test suite passes.
 
 Start by reading `{module}`."""
 
 
 def grade_task(task: dict, repo: Path, source: str, work: Path) -> dict[str, bool]:
-    """Did each injected defect end up fixed? Compare probe values, not pass/fail.
-
-    The injected bug's recorded probe value is the *after* behaviour; the buggy source
-    produces something different for exactly those probes. Comparing values avoids the trap
-    where a model deletes the function and the probe simply errors.
-    """
-    d = build_sandbox(repo, work)
-    (d / task["module"]).write_text(source)
-    (d / "test_probe.py").write_text(task["test_source"])
-    r = subprocess.run([sys.executable, "-m", "pytest", "test_probe.py", "-q",
-                        "--tb=no", "-s"],
-                       cwd=d, capture_output=True, text=True, timeout=300, env=grader_env())
-    got: dict[str, str] = {}
-    for line in r.stdout.splitlines():
-        if line.startswith("PROBE"):
-            k, _, v = line[5:].partition("=")
-            got[k.strip()] = v.strip()
+    """Grade whether the defect was fixed using the genuine recorded test oracle."""
     shutil.rmtree(work, ignore_errors=True)
+    d = build_sandbox(repo, work)
+    (d / task["module"]).parent.mkdir(parents=True, exist_ok=True)
+    (d / task["module"]).write_text(source)
+    test_rel = task.get("test_rel", "test_recorded.py")
+    (d / test_rel).parent.mkdir(parents=True, exist_ok=True)
+    (d / test_rel).write_text(task["test_source"])
+    for pycache in d.rglob("__pycache__"):
+        shutil.rmtree(pycache, ignore_errors=True)
 
-    fixed: dict[str, bool] = {}
-    for bug in task["bugs"]:
-        expected = bug.get("probe_value_after", "")
-        fixed[bug["bug_id"]] = bool(expected) and got.get(bug["probe"]) == expected
-    return fixed
+    if task.get("focus_ids"):
+        node_ids = [f"{test_rel}::{fid}" for fid in task["focus_ids"]]
+    else:
+        node_ids = [test_rel]
+
+    r = subprocess.run([sys.executable, "-m", "pytest", *node_ids, "-q",
+                        "--no-header", "-p", "no:cacheprovider"],
+                       cwd=d, capture_output=True, text=True, timeout=120, env=grader_env())
+    shutil.rmtree(work, ignore_errors=True)
+    fixed = (r.returncode == 0)
+    return {task["task_id"]: fixed}
 
 
 def run_agent(agy: str, model: str, task: dict, repo: Path, workdir: Path,
               timeout: int) -> dict:
     shutil.rmtree(workdir, ignore_errors=True)
     code = build_sandbox(repo, workdir / "code", drop_tests=True)
+    (code / task["module"]).parent.mkdir(parents=True, exist_ok=True)
     (code / task["module"]).write_text(task["before_source"])
     prompt = PROMPT.format(module=task["module"])
     env = grader_env({"PATH": str(Path.home() / ".local/bin") + ":" +
                       __import__("os").environ.get("PATH", "")})
-    cmd = [agy, "--print", "--sandbox", "--dangerously-skip-permissions",
+    cmd = [agy, "--sandbox", "--dangerously-skip-permissions",
            "--add-dir", str(code), "--model", model,
-           "--print-timeout", f"{timeout}s", "-p", prompt]
+           "--print-timeout", f"{timeout}s", "--print", prompt]
     start = time.monotonic()
     try:
         proc = subprocess.run(cmd, cwd=code, capture_output=True, text=True,
@@ -109,11 +102,10 @@ def main() -> int:
     ap.add_argument("--model", required=True)
     ap.add_argument("--hosts", default=str(HOSTS))
     ap.add_argument("--out", required=True)
-    ap.add_argument("--timeout", type=int, default=900)
+    ap.add_argument("--timeout", type=int, default=300)
     args = ap.parse_args()
 
     tasks = json.loads(Path(args.hosts).read_text())
-    # The manifest carries no source; the answers live in a gitignored sidecar.
     side = Path(args.hosts).with_name("host_tasks_sources.json")
     sources = {t["task_id"]: t for t in json.loads(side.read_text())} if side.exists() else {}
     if not tasks:
@@ -125,13 +117,13 @@ def main() -> int:
     print(f"host panel: {len(tasks)} files, {total_bugs} defects -> {args.model}", flush=True)
 
     for i, task in enumerate(tasks, 1):
-        # Resolve by longest root path that actually exists; matching on the codebase
-        # name alone is ambiguous because several roots are dot-directories.
-        # Resolve by asking each root whether it actually holds the host module. Matching
-        # on the codebase name alone is ambiguous because several roots are dot-directories.
-        roots = sorted((Path(r) for r in ROOTS_BY_PREFIX.values()),
-                       key=lambda p: len(str(p)), reverse=True)
-        repo = next((r for r in roots if (r / task["module"]).exists()), None)
+        repo = None
+        if task.get("repo") and Path(task["repo"]).is_dir() and (Path(task["repo"]) / task["module"]).exists():
+            repo = Path(task["repo"])
+        else:
+            roots = sorted((Path(r) for r in ROOTS_BY_PREFIX.values()),
+                           key=lambda p: len(str(p)), reverse=True)
+            repo = next((r for r in roots if (r / task["module"]).exists()), None)
         if repo is None:
             print(f"  skip {task['task_id']}: host repo/module not resolvable", flush=True)
             continue
@@ -159,7 +151,7 @@ def main() -> int:
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("\n".join(json.dumps(r) for r in rows))
+    out.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
     fixed = sum(r["bugs_fixed"] for r in rows)
     bugs = sum(r["bugs_total"] for r in rows)
     print(f"\nagy/{args.model}: {fixed}/{bugs} = {fixed / max(bugs,1):.0%}  -> {out}")
