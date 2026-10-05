@@ -225,5 +225,21 @@
     "session_id": "ses_f14be9002ffei6pkJwJQ9oytNR",
     "verified": true,
     "reject_reason": ""
+  },
+  {
+    "task_id": "rec__scoring__bugscore_errored_1790850000000",
+    "codebase": "llm-bugbench",
+    "repo": "/home/ras/llm-bugbench",
+    "module": "src/bugbench/scoring.py",
+    "test_rel": "tests/test_scoring.py",
+    "focus_ids": [],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "easy",
+    "fix_time": 1790850000000,
+    "session_id": "ses_easy_scoring_bugscore",
+    "verified": true,
+    "reject_reason": "",
+    "description": "In BugScore.value, an errored node (self.errored is True) is incorrectly awarded full credit (1.0) when self.passed is True. Fix BugScore.value so that errored nodes never receive credit and always evaluate to 0.0."
   }
 ]

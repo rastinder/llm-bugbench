@@ -95,7 +95,20 @@ def run_container_task(task: dict, model: str, timeout: int, agent_type: str = "
             bad.unlink()
     shutil.rmtree(code_dir / ".swarm", ignore_errors=True)
 
-    prompt = PROMPT.format(module=task["module"])
+    desc = task.get("description", "")
+    if desc:
+        prompt = (
+            f"You are fixing a real bug in a real codebase.\n\n"
+            f"The file `{task['module']}` has a defect:\n{desc}\n\n"
+            f"Rules:\n"
+            f"- Work only inside /work.\n"
+            f"- Make the minimal change that fixes the defect. Do not refactor or reformat.\n"
+            f"- Do not create test files.\n\n"
+            f"When done, save your edit to `{task['module']}`.\n\n"
+            f"Start by reading `{task['module']}`."
+        )
+    else:
+        prompt = PROMPT.format(module=task["module"])
 
     net = "bugbench-exec_bench_internal"
     if agent_type == "opencode":
@@ -166,13 +179,16 @@ def main():
     ap.add_argument("--model", default="space-bunny-alpha")
     ap.add_argument("--agent", choices=["agent", "opencode"], default="agent")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--task-id", default="")
     ap.add_argument("--timeout", type=int, default=240)
     ap.add_argument("--out", default="")
     args = ap.parse_args()
 
     tasks = json.loads(HOSTS.read_text())
     sources = {t["task_id"]: t for t in json.loads(SOURCES.read_text())}
-    if args.limit > 0:
+    if args.task_id:
+        tasks = [t for t in tasks if t["task_id"] == args.task_id]
+    elif args.limit > 0:
         tasks = tasks[:args.limit]
 
     start_services()
@@ -205,7 +221,14 @@ def main():
         rows.append(row)
         print(f"  Result: changed={res['changed']} fixed={res['fixed']} latency={res['latency_s']}s", flush=True)
 
-    out_file.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    # If running a single task, append or merge, otherwise overwrite
+    if args.task_id and out_file.exists():
+        existing = [json.loads(l) for l in out_file.read_text().splitlines() if l]
+        existing = [e for e in existing if e["task_id"] != args.task_id] + rows
+        out_file.write_text("\n".join(json.dumps(r) for r in existing) + "\n")
+    else:
+        out_file.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+
     print(f"\nCampaign Complete: {fixed_count}/{len(tasks)} fixed ({fixed_count/max(len(tasks),1):.1%}) -> {out_file}")
 
 

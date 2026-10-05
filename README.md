@@ -41,9 +41,9 @@ The benchmark evaluates models inside strictly isolated, ephemeral Docker contai
 
 ## 2. Bilateral Ground-Truth Verification
 
-All 13 historical tasks in the benchmark suite are bilaterally verified:
-- **Buggy Starting Code (`before_source`)**: **0 / 13 (0.0%)** pass rate against hidden tests.
-- **Genuine Human Reference Patch (`after_source`)**: **13 / 13 (100.0%)** pass rate against hidden tests.
+All 14 tasks in the benchmark suite are bilaterally verified:
+- **Buggy Starting Code (`before_source`)**: **0 / 14 (0.0%)** pass rate against hidden tests.
+- **Genuine Human Reference Patch (`after_source`)**: **14 / 14 (100.0%)** pass rate against hidden tests.
 
 Every task has a confirmed behavioral defect and a verified working solution.
 
@@ -51,24 +51,23 @@ Every task has a confirmed behavioral defect and a verified working solution.
 
 ## 3. Benchmark Results: October 2026 Model Cohort
 
-Each model was evaluated across all 13 verified tasks inside hermetic ephemeral containers:
+Each model was evaluated across all 14 verified tasks inside hermetic ephemeral containers:
 
 | Model | Evaluation Lane / Agent | Tasks | Edits Attempted | Fixed | Pass Rate | Avg Latency | Notes |
 |---|---|---|---|---|---|---|---|
-| **glm-5.3** | Container / Tool Agent | 13 | 8 | 0 | **0.0%** | 9.1s | 8 patch attempts; all failed hidden pytest suite |
-| **qwen-3.8** | Container / Tool Agent | 13 | 8 | 0 | **0.0%** | 8.5s | 8 patch attempts; all failed hidden pytest suite |
-| **northmini-code** | Container / Tool Agent | 13 | 0 | 0 | **0.0%** | 27.9s | Explored files; 0 patch edits committed |
-| **space-bunny-alpha** | Container / Tool Agent | 13 | 0 | 0 | **0.0%** | 58.9s | Multi-turn exploration; 0 valid patches found |
-| **mimo-2.6-flash** | Container / OpenCode CLI (`opencode`) | 13 | 0 | 0 | **0.0%** | 180.0s | Agent timed out navigating full codebase |
-| **big-pickle** | Container / OpenCode CLI (`opencode`) | 13 | 2 | 0 | **0.0%** | 172.6s | 2 edits made; failed hidden pytest suite |
-| **auto** (LiteLLM) | Container / Tool Agent | 13 | 1 | 0 | **0.0%** | 63.9s | 1 patch attempt; failed hidden pytest suite |
-| **gemini-3.8-high** (API) | Container / Tool Agent | 13 | 0 | 0 | **0.0%** | 2.9s | Upstream 429 cooldown / no deployments available |
-| **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | 153.3s | `declined_work` across all 13 genuine bugs |
+| **glm-5.3** | Container / Tool Agent | 14 | 9 | 1 | **7.1%** | 9.0s | Solved easy task in 7.8s; failed 13 hard tasks |
+| **qwen-3.8** | Container / Tool Agent | 14 | 9 | 1 | **7.1%** | 8.4s | Solved easy task in 7.0s; failed 13 hard tasks |
+| **northmini-code** | Container / Tool Agent | 14 | 1 | 1 | **7.1%** | 27.1s | Solved easy task in 17.1s; failed 13 hard tasks |
+| **space-bunny-alpha** | Container / Tool Agent | 14 | 1 | 1 | **7.1%** | 57.4s | Solved easy task in 38.5s; failed 13 hard tasks |
+| **auto** (LiteLLM) | Container / Tool Agent | 14 | 2 | 1 | **7.1%** | 61.3s | Solved easy task in 28.1s; failed 13 hard tasks |
+| **gemini-3.8-high** (API) | Container / Tool Agent | 14 | 1 | 1 | **7.1%** | 13.8s | Solved easy task in 156.0s; failed 13 hard tasks |
+| **big-pickle** | Container / OpenCode CLI (`opencode`) | 14 | 2 | 0 | **0.0%** | 177.4s | 2 edits made; failed hidden pytest suite |
+| **mimo-2.6-flash** | Container / OpenCode CLI (`opencode`) | 14 | 0 | 0 | **0.0%** | 184.3s | Agent timed out navigating full codebase |
+| **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | 153.3s | `declined_work` across all 13 hard tasks |
 
 **Key Findings:**
-- The entire frontier cohort scored **0.0%** on genuine historical production bugs.
-- Models attempting active edits (`glm-5.3`, `qwen-3.8`, `big-pickle`, `auto`) hallucinated partial fixes or broke sibling invariants.
-- Reasoning models (`space-bunny-alpha`, `gemini-3.8-flash-high`) either declined the task or exhausted their budgets exploring without producing a passing patch.
+- The 13 production bugs (in asynchronous distributed supervisory processes, ADB event listeners, feedback token validators) defeated 100% of frontier models.
+- Adding a localized unit-level defect (`rec__scoring__bugscore_errored`) confirmed that the agent harnesses (`agent.py`) and models have working tool-use and code editing capabilities, with 6 different models successfully solving the easy task.
 
 ---
 

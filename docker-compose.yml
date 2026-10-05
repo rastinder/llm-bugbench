@@ -24,6 +24,7 @@ services:
       - /home/ras/marketplace-monitor:/srv/repos/marketplace-monitor:ro
       - /home/ras/llm-bugbench:/srv/repos/llm-bugbench:ro
       - ./docker/services/server.py:/srv/server.py:ro
+      - ./data:/srv/data:ro
     environment:
       - LITELLM_BASE=https://aitshirts.in/litellm/v1
       - LITELLM_KEY=sk-litellm-vps-2026
