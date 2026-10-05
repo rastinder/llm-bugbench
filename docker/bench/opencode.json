@@ -1,0 +1,36 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "services-gateway/space-bunny-alpha",
+  "small_model": "services-gateway/space-bunny-alpha",
+  "permission": {
+    "*": "allow"
+  },
+  "provider": {
+    "services-gateway": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://services:8000/v1",
+        "apiKey": "local-gateway-key",
+        "timeout": 300000,
+        "maxRetries": 1
+      },
+      "models": {
+        "space-bunny-alpha": {
+          "id": "space-bunny-alpha",
+          "name": "Space Bunny Alpha",
+          "tool_call": true
+        },
+        "gemini-3.8-high": {
+          "id": "gemini-3.8-high",
+          "name": "Gemini 3.8 High",
+          "tool_call": true
+        },
+        "glm-5.2": {
+          "id": "glm-5.2",
+          "name": "GLM 5.2",
+          "tool_call": true
+        }
+      }
+    }
+  }
+}

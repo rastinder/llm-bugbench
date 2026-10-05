@@ -1,15 +1,15 @@
-# The model's workspace. Deliberately minimal: no pytest, no build tooling, nothing that
-# could be used to introspect the grading environment. Anything the agent needs it must
-# ask for through the API, which is the only channel it has.
 FROM python:3.11-slim
 
-RUN useradd --uid 10001 --create-home --shell /usr/sbin/nologin bench \
- && mkdir -p /work && chown 10001:10001 /work
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git curl ca-certificates procps \
+ && rm -rf /var/lib/apt/lists/*
 
-COPY --chown=10001:10001 grpc /work/grpc
-USER 10001
+COPY opencode /usr/local/bin/opencode
+RUN chmod +x /usr/local/bin/opencode
+
+RUN mkdir -p /root/.config/opencode
+COPY opencode.json /root/.config/opencode/opencode.json
+COPY agent.py /srv/agent.py
+
 WORKDIR /work
-
-# No network tools are installed on purpose: an agent that can neither reach out nor
-# inspect the grader has fewer ways to cheat than one that merely is told not to.
-CMD ["sleep", "infinity"]
+CMD ["python3", "/srv/agent.py", "--help"]

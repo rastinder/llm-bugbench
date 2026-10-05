@@ -1,0 +1,13 @@
+{"model": "container/glm-5.3", "task_id": "rec__herdr_supervisor__1787327878875", "agent": "agent", "changed": true, "fixed": false, "latency_s": 7.6, "returncode": 0, "codebase": "bin"}
+{"model": "container/glm-5.3", "task_id": "rec__herdr_supervisor__1787329596361", "agent": "agent", "changed": false, "fixed": false, "latency_s": 3.9, "returncode": 0, "codebase": "bin"}
+{"model": "container/glm-5.3", "task_id": "rec__herdr_supervisor__1787349499727", "agent": "agent", "changed": true, "fixed": false, "latency_s": 6.5, "returncode": 0, "codebase": "bin"}
+{"model": "container/glm-5.3", "task_id": "rec__herdr_supervisor__1787350107899", "agent": "agent", "changed": false, "fixed": false, "latency_s": 14.0, "returncode": 0, "codebase": "bin"}
+{"model": "container/glm-5.3", "task_id": "rec__herdr_supervisor__1790296045258", "agent": "agent", "changed": true, "fixed": false, "latency_s": 16.5, "returncode": 0, "codebase": "bin"}
+{"model": "container/glm-5.3", "task_id": "rec__pi_network_quality__1790275306010", "agent": "agent", "changed": false, "fixed": false, "latency_s": 10.4, "returncode": 0, "codebase": "quality"}
+{"model": "container/glm-5.3", "task_id": "rec__pi_network_quality__1790277095470", "agent": "agent", "changed": false, "fixed": false, "latency_s": 6.4, "returncode": 0, "codebase": "quality"}
+{"model": "container/glm-5.3", "task_id": "rec__pi_network_quality__1790277455685", "agent": "agent", "changed": true, "fixed": false, "latency_s": 10.9, "returncode": 0, "codebase": "quality"}
+{"model": "container/glm-5.3", "task_id": "rec__monitor__1790303646272", "agent": "agent", "changed": true, "fixed": false, "latency_s": 9.2, "returncode": 0, "codebase": "marketplace-monitor"}
+{"model": "container/glm-5.3", "task_id": "rec__monitor__1790361759492", "agent": "agent", "changed": true, "fixed": false, "latency_s": 10.0, "returncode": 0, "codebase": "marketplace-monitor"}
+{"model": "container/glm-5.3", "task_id": "rec__monitor__1790389642770", "agent": "agent", "changed": false, "fixed": false, "latency_s": 6.0, "returncode": 0, "codebase": "marketplace-monitor"}
+{"model": "container/glm-5.3", "task_id": "rec__monitor__1790389703313", "agent": "agent", "changed": true, "fixed": false, "latency_s": 7.9, "returncode": 0, "codebase": "marketplace-monitor"}
+{"model": "container/glm-5.3", "task_id": "rec__feedback__1790829085469", "agent": "agent", "changed": true, "fixed": false, "latency_s": 8.5, "returncode": 0, "codebase": "llm-bugbench"}

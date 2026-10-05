@@ -1,18 +1,19 @@
-# The grading side. Runs the hidden tests and the fake upstreams.
-#
-# The grader needs the test files, so it runs as root here and the *test tree* is made
-# unreadable to everyone else. The agent never enters this container at all; the uid
-# separation that matters is inside it, between the grader and the model-authored code it
-# executes.
 FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nodejs \
+ && rm -rf /var/lib/apt/lists/*
+
+# Add hermetic adb dummy script that serves 1x1 png for screencap
+RUN printf '#!/bin/sh\npython3 -c "import sys; sys.stdout.buffer.write(b\\"\\x89PNG\\r\\n\\x1a\\n\\x00\\x00\\x00\\rIHDR\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x01\\x08\\x06\\x00\\x00\\x00\\x1f\\x15c4\\x00\\x00\\x00\\rIDATx\\x9cc\\x60\\x00\\x00\\x00\\x02\\x00\\x01H\\xaf\\xa4q\\x00\\x00\\x00\\x00IEND\\xaeB\\x60\\x82\\")"\n' > /usr/local/bin/adb \
+ && chmod +x /usr/local/bin/adb
 
 RUN pip install --no-cache-dir pytest==9.1.1
 
-RUN useradd --uid 10002 --create-home --shell /usr/sbin/nologin runner \
- && useradd --uid 10003 --create-home --shell /usr/sbin/nologin model \
- && mkdir -p /grading && chmod 0700 /grading
+WORKDIR /srv
+COPY data /srv/data
+COPY sandbox.py /srv/sandbox.py
+COPY server.py /srv/server.py
 
-COPY bugbench /srv/bugbench
-ENV PYTHONPATH=/srv
-WORKDIR /grading
-CMD ["python", "-m", "bugbench.services"]
+EXPOSE 8000 5000 8888
+CMD ["python3", "/srv/server.py"]

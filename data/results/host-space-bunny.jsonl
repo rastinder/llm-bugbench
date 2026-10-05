@@ -1,0 +1,13 @@
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__herdr_supervisor__1787327878875", "outcome": "invalid_response", "ok": false, "latency_s": 24.27, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__herdr_supervisor__1787329596361", "outcome": "invalid_response", "ok": false, "latency_s": 21.11, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__herdr_supervisor__1787349499727", "outcome": "invalid_response", "ok": false, "latency_s": 21.19, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__herdr_supervisor__1787350107899", "outcome": "invalid_response", "ok": false, "latency_s": 25.34, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__herdr_supervisor__1790296045258", "outcome": "invalid_response", "ok": false, "latency_s": 23.88, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__pi_network_quality__1790275306010", "outcome": "invalid_response", "ok": false, "latency_s": 27.61, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__pi_network_quality__1790277095470", "outcome": "invalid_response", "ok": false, "latency_s": 26.02, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__pi_network_quality__1790277455685", "outcome": "invalid_response", "ok": false, "latency_s": 18.67, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__monitor__1790303646272", "outcome": "invalid_response", "ok": false, "latency_s": 35.17, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__monitor__1790361759492", "outcome": "invalid_response", "ok": false, "latency_s": 31.54, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__monitor__1790389642770", "outcome": "invalid_response", "ok": false, "latency_s": 23.42, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__monitor__1790389703313", "outcome": "invalid_response", "ok": false, "latency_s": 29.97, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}
+{"model": "openrouter-space-bunny-alpha", "task_id": "rec__feedback__1790829085469", "outcome": "invalid_response", "ok": false, "latency_s": 29.27, "bugs_fixed": 0, "bugs_total": 1, "reply_snippet": ""}

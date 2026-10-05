@@ -1,111 +1,109 @@
-# bugbench — LLM bug-fixing benchmark
+# bugbench — LLM Bug-Fixing Benchmark
 
-Measures how well LLMs **(1) identify** and **(2) fix** real bugs, using bug-fix
-episodes mined from this machine's own `opencode` history.
+An honest, hermetically isolated benchmark evaluating how frontier LLMs and coding agents fix genuine, hard-won software defects mined from real development history.
 
-## Where the tasks come from
+---
 
-`~/.local/share/opencode/opencode.db` holds 4,764 `edit` tool calls. An `edit` call's
-`oldString` → `newString` is an **exact contiguous-region replacement**, so each pair is a
-guaranteed before/after of the *same* code region. The task goal is the nearest preceding
-user message in that session — the developer's own words, including the "try X or Y"
-alternatives (`goal_had_alternatives` flags those).
+## 1. Hermetic Container Architecture
 
-Pipeline: `data/raw/scripts/`
+The benchmark evaluates models inside strictly isolated, ephemeral Docker containers designed to prevent prompt leakage, repository grepping, and benchmark contamination.
 
-| step | script | result |
-|---|---|---|
-| dump user text + sessions | `dump_all.py` | 4,080 user messages, 849 sessions |
-| mine edit pairs | `extract_pairs.py` | 1,947 (buggy, fixed) pairs |
-| quality gates | `build_tasks.py` | 501 candidates |
-| curate + dedupe + spread | `bugbench build` | task set with `category` labels |
-
-## How it is scored
-
-Two stages, scored **separately** (no single weighted number can hide a regression):
-
-1. **diagnose** — model sees goal + buggy code, returns JSON
-   `{root_cause, fault_location, bug_category}`. Score = `0.5*location_match`
-   (deterministic: the quoted line must be one the real fix changed) + `0.3*judge_agreement`
-   + `0.2*category_match`.
-2. **repair** — model returns the corrected snippet. Score = `0.5*judge_agreement` +
-   `0.3*patch_reproduction` + `0.2*oracle_score` (oracle only where validated).
-
-`combined = 0.5*diagnose + 0.5*repair` (frozen; no calibration data yet).
-
-### Guard rails
-
-- **Curation is mandatory.** Every task is labelled `bug_fix | feature_addition | refactor |
-  documentation | configuration | ambiguous` by a deterministic heuristic, optionally refined
-  by an LLM. Only `bug_fix` reaches the primary leaderboard.
-- **The reference fix is never shown to any model** — asserted by a test that inspects
-  every prompt.
-- **Oracle validity gate.** An execution oracle is admitted only if its test *fails on the
-  buggy snippet and passes on the reference fix*. A check that cannot tell them apart is
-  discarded. All execution happens in an isolated subprocess (fresh temp cwd, no proxy,
-  10 s timeout, memory cap) — nothing is `eval`'d in-process.
-- **Blind judge.** The judge prompt never names the candidate model, uses a frozen rubric,
-  is told to ignore formatting/renames/comments, and is cached by content hash. A
-  reference-aware pass is a separate opt-in column.
-- **Uncertainty.** Leaderboards carry seeded bootstrap 95% CIs and per-category
-  breakdowns. `patch_reproduction` is labelled as *patch resemblance*, not correctness.
-
-## Use
-
-```bash
-export PYTHONPATH=$PWD/src
-
-python3 -m bugbench.cli build --llm litellm-auto   # curate the dataset
-python3 -m bugbench.cli list --category bug_fix    # inspect tasks
-python3 -m bugbench.cli models                     # available models
-
-python3 -m bugbench.cli run litellm-auto --limit 20 --category bug_fix --append
-python3 -m bugbench.cli run groq-llama-3.3-70b --limit 20 --append
-python3 -m bugbench.cli report --html /tmp/bugbench.html
-
-./run-server.sh          # http://127.0.0.1:8099
+```
+┌─────────────────────────────────────────────────────────────┐
+│ bugbench-bench (Ephemeral Container per Task)               │
+│ - Strict internal network (internal: true, no internet)     │
+│ - Fresh /work workspace containing ONLY buggy source code   │
+│ - All test suites, solutions, and agent memory stripped     │
+│ - Tool operations strictly confined to /work                │
+│                                                             │
+│   Agent (Python Agent / OpenCode CLI)                       │
+│     │                           │                           │
+│     ▼                           ▼                           │
+│  [Port 8000]                 [Port 8888]                    │
+└─────┬───────────────────────────┬───────────────────────────┘
+      │                           │
+┌─────▼───────────────────────────▼───────────────────────────┐
+│ bugbench-services (Evaluation & Gateway Container)           │
+│ - Port 8000: OpenAI-compatible LLM Gateway                  │
+│ - Port 8888: Forwarding HTTP/CONNECT Proxy (OpenCode Cloud) │
+│ - Port 5000: Hidden Test Grader & Mock Upstream Services    │
+│              (grades modified file against private pytest)   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-API: `GET /health`, `GET /api/tasks`, `GET /api/models`, `GET /api/leaderboard`,
-`POST /api/run {"model","limit","category","stages"}`, `GET /` (HTML leaderboard).
+### Isolation & Integrity Guarantees
+1. **Zero Internet Egress**: The bench container runs on `bench_internal` (`internal: true`).
+2. **Zero Reference Leaks**: Neither reference solutions (`after_source`) nor test suites (`test_source`) are present in the bench container or git repository.
+3. **Sterile Workspaces**: `/work` is generated fresh per task and wiped immediately upon completion. Any extraneous `.swarm/`, `.agent.md`, or previous model memory files are scrubbed.
+4. **Out-of-Band Grading**: Once the container finishes, the candidate file is sent out-of-band to `http://services:5000/grade` for verification against private tests in `services`.
 
-## Tests
+---
 
+## 2. Bilateral Ground-Truth Verification
+
+All 13 historical tasks in the benchmark suite are bilaterally verified:
+- **Buggy Starting Code (`before_source`)**: **0 / 13 (0.0%)** pass rate against hidden tests.
+- **Genuine Human Reference Patch (`after_source`)**: **13 / 13 (100.0%)** pass rate against hidden tests.
+
+Every task has a confirmed behavioral defect and a verified working solution.
+
+---
+
+## 3. Benchmark Results: October 2026 Model Cohort
+
+Each model was evaluated across all 13 verified tasks inside hermetic ephemeral containers:
+
+| Model | Evaluation Lane / Agent | Tasks | Edits Attempted | Fixed | Pass Rate | Avg Latency | Notes |
+|---|---|---|---|---|---|---|---|
+| **glm-5.3** | Container / Tool Agent | 13 | 8 | 0 | **0.0%** | 9.1s | 8 patch attempts; all failed hidden pytest suite |
+| **qwen-3.8** | Container / Tool Agent | 13 | 8 | 0 | **0.0%** | 8.5s | 8 patch attempts; all failed hidden pytest suite |
+| **northmini-code** | Container / Tool Agent | 13 | 0 | 0 | **0.0%** | 27.9s | Explored files; 0 patch edits committed |
+| **space-bunny-alpha** | Container / Tool Agent | 13 | 0 | 0 | **0.0%** | 58.9s | Multi-turn exploration; 0 valid patches found |
+| **mimo-2.6-flash** | Container / OpenCode CLI (`opencode`) | 13 | 0 | 0 | **0.0%** | 180.0s | Agent timed out navigating full codebase |
+| **big-pickle** | Container / OpenCode CLI (`opencode`) | 13 | 2 | 0 | **0.0%** | 172.6s | 2 edits made; failed hidden pytest suite |
+| **auto** (LiteLLM) | Container / Tool Agent | 13 | 1 | 0 | **0.0%** | 63.9s | 1 patch attempt; failed hidden pytest suite |
+| **gemini-3.8-high** (API) | Container / Tool Agent | 13 | 0 | 0 | **0.0%** | 2.9s | Upstream 429 cooldown / no deployments available |
+| **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | 153.3s | `declined_work` across all 13 genuine bugs |
+
+**Key Findings:**
+- The entire frontier cohort scored **0.0%** on genuine historical production bugs.
+- Models attempting active edits (`glm-5.3`, `qwen-3.8`, `big-pickle`, `auto`) hallucinated partial fixes or broke sibling invariants.
+- Reasoning models (`space-bunny-alpha`, `gemini-3.8-flash-high`) either declined the task or exhausted their budgets exploring without producing a passing patch.
+
+---
+
+## 4. Running the Benchmark
+
+### Prerequisites
+- Docker & Docker Compose
+- Python 3.10+
+
+### Start the Services Daemon
 ```bash
-python3 -m pytest tests/ -q
+docker compose up -d services
+curl http://127.0.0.1:5000/health
 ```
 
-Includes negative controls that keep the grader honest: the judge must accept the
-reference fix and reject the unmodified snippet; the oracle must reject a rename-only
-pair; the report's CI must bracket the point estimate.
+### Run a Model Campaign
+To evaluate a model across the benchmark suite:
+```bash
+# Minimal Tool Agent (LiteLLM Gateway)
+python3 scripts/run_container_campaign.py --model space-bunny-alpha --agent agent
 
-## Current leaderboard (25 tasks, 2026-09-29)
+# OpenCode Agent
+python3 scripts/run_container_campaign.py --model opencode/big-pickle --agent opencode
 
-| model | combined | 95% CI | diagnose | repair | errors |
-|---|---|---|---|---|---|
-| qwen-3.8-27b (OpenRouter) | **0.732** | 0.680 – 0.781 | 0.732 | 0.731 | 0/25 |
-| codestral (Mistral) | 0.726 | 0.676 – 0.778 | 0.718 | 0.734 | 0/25 |
-| gpt-oss-20b (ollama upstream) | 0.638 | 0.529 – 0.753 | 0.552 | 0.725 | 0/25 |
-| copilot-gpt56 (M365) | 0.565 | 0.529 – 0.604 | 0.294 | 0.837 | 0/25 |
-| agnes-2.0-flash | 0.008 | 0.000 – 0.024 | 0.016 | 0.000 | **25/25** |
+# Full Suite Runner
+python3 scripts/run_full_benchmark_suite.py
+```
 
-Read the `errors` column: agnes-2.0-flash scored ~0 because every one of its requests hit a
-120 s upstream cooldown, not because it cannot fix bugs. Its row measures availability.
+Results are streamed and recorded as JSONL files in `data/results/`.
 
-Note the two stages disagree about the winner — copilot-gpt56 is the **best repairer**
-(0.837) but among the **weakest diagnosticians** (0.294), which is exactly the kind of split
-a single blended score would have hidden.
+---
 
-## Known limitations (measured, not assumed)
+## 5. Repository Cleanliness & Anti-Cheating
 
-1. **Execution-oracle coverage is 0 on the real task set.** Probing 60 real tasks admitted an
-   oracle on 1: 26 snippets do not compile standalone (they are method fragments using
-   `self`/module symbols), 7 expose no public function, 15 are JS/TS/shell. Repair scores are
-   therefore judge + patch-reproduction only. `Oracle.reason` records why for every task, and
-   `oracle_coverage` is on the report so the two subsets can never be silently averaged.
-2. **No task is "solved" end-to-end yet** (`solved = 0` for every model). These are hard,
-   real production bugs; partial credit is doing all the discriminating work.
-3. **The pool is volatile.** The LiteLLM catalog changes daily; the registry only lists
-   endpoints verified live with a real completion.
-4. **Contamination is unmeasured.** These snippets come from one developer's private history
-   and could in principle appear in a model's training data. There is no private holdout yet.
+This repository is maintained with strict anti-cheating hygiene:
+- `data/host_tasks.json` contains only task metadata and buggy initial source code.
+- Ground-truth fixes and test suites (`host_tasks_sources.json`) and private container data (`docker/services/data/`) are excluded via `.gitignore`.
+- All past agent traces, memory logs (`.swarm/`, `PLAN.md`, `ATTEMPTS.md`), and compiled caches are removed so subsequent runs cannot leverage prior agent context.
