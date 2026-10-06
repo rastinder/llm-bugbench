@@ -56,19 +56,19 @@ Every task has a confirmed behavioral defect and a verified working reference pa
 
 ## 3. Benchmark Results: October 2026 Model Cohort
 
-Each model was evaluated inside hermetic ephemeral containers across the benchmark panel:
+Each model was evaluated inside hermetic ephemeral containers across the complete 16-task benchmark panel:
 
 | Model | Evaluation Lane / Agent | Tasks | Edits Attempted | Fixed | Pass Rate | Notes |
 |---|---|---|---|---|---|---|
-| **glm-5.3** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved easy task; failed medium & hard tasks |
-| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved easy task; failed medium & hard tasks |
-| **auto** (LiteLLM) | Container / Tool Agent | 16 | 4 | 1 | **6.2%** | Solved easy task; failed medium & hard tasks |
-| **space-bunny-alpha** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved easy task; failed medium & hard tasks |
-| **northmini-code** | Container / Tool Agent | 15 | 2 | 1 | **6.7%** | Solved easy task; failed medium & hard tasks |
-| **gemini-3.8-high** (API) | Container / Tool Agent | 14 | 1 | 1 | **7.1%** | Solved easy task in 156.0s; failed hard tasks |
-| **big-pickle** | Container / OpenCode CLI (`opencode`) | 14 | 2 | 0 | **0.0%** | 2 edits made; failed hidden pytest suite |
-| **mimo-2.6-flash** | Container / OpenCode CLI (`opencode`) | 14 | 0 | 0 | **0.0%** | Agent timed out navigating full codebase |
-| **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | `declined_work` across all 13 hard tasks |
+| **glm-5.3** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
+| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
+| **auto** (LiteLLM) | Container / Tool Agent | 16 | 4 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
+| **space-bunny-alpha** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
+| **northmini-code** | Container / Tool Agent | 16 | 2 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
+| **gemini-3.8-high** (API) | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
+| **big-pickle** | Container / OpenCode CLI (`opencode`) | 16 | 4 | 1 | **6.2%** | Solved Task 16 (Hard AutoPilot deduplication) in 64.9s |
+| **mimo-2.6-flash** | Container / OpenCode CLI (`opencode`) | 16 | 2 | 1 | **6.2%** | Solved Task 16 (Hard AutoPilot deduplication) in 119.5s |
+| **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | Initial evaluation on 13 hard tasks (`declined_work`) |
 
 **Key Findings:**
 - **Zero Hallucination Tolerance**: The 15 medium and hard production bugs (including AutoPilot-Jobs matching thresholds and query deduplication) defeated 100% of tested models.
