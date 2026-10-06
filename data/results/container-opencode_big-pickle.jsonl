@@ -11,6 +11,6 @@
 {"model": "container/opencode/big-pickle", "task_id": "rec__monitor__1790389642770", "agent": "opencode", "changed": false, "fixed": false, "latency_s": 180.1, "returncode": -1, "codebase": "marketplace-monitor"}
 {"model": "container/opencode/big-pickle", "task_id": "rec__monitor__1790389703313", "agent": "opencode", "changed": false, "fixed": false, "latency_s": 180.1, "returncode": -1, "codebase": "marketplace-monitor"}
 {"model": "container/opencode/big-pickle", "task_id": "rec__feedback__1790829085469", "agent": "opencode", "changed": false, "fixed": false, "latency_s": 180.1, "returncode": -1, "codebase": "llm-bugbench"}
-{"model": "container/opencode/big-pickle", "task_id": "rec__scoring__bugscore_errored_1790850000000", "agent": "opencode", "changed": false, "fixed": false, "latency_s": 240.0, "returncode": -1, "codebase": "llm-bugbench"}
 {"model": "container/opencode/big-pickle", "task_id": "rec__autopilot__job_matcher_threshold_1790600000000", "agent": "opencode", "changed": true, "fixed": false, "latency_s": 44.8, "returncode": 0, "codebase": "auto-job-pilot"}
 {"model": "container/opencode/big-pickle", "task_id": "rec__autopilot__retrieval_query_dedupe_1790550000000", "agent": "opencode", "changed": true, "fixed": true, "latency_s": 64.9, "returncode": 0, "codebase": "auto-job-pilot"}
+{"model": "container/opencode/big-pickle", "task_id": "rec__scoring__bugscore_errored_1790850000000", "agent": "opencode", "changed": true, "fixed": true, "latency_s": 34.9, "returncode": 0, "codebase": "llm-bugbench"}

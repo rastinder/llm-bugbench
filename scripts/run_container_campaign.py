@@ -73,7 +73,7 @@ def grade_via_service(task_id: str, source: str) -> dict:
         return {"fixed": False, "error": str(e)}
 
 
-def run_container_task(task: dict, model: str, timeout: int, agent_type: str = "agent") -> dict:
+def run_container_task(task: dict, model: str, timeout: int, agent_type: str = "agent", skill: str = "") -> dict:
     task_id = task["task_id"]
     workdir = TEMP_RUN_ROOT / task_id[-24:]
     shutil.rmtree(workdir, ignore_errors=True)
@@ -111,17 +111,37 @@ def run_container_task(task: dict, model: str, timeout: int, agent_type: str = "
         prompt = PROMPT.format(module=task["module"])
 
     net = "bugbench-exec_bench_internal"
+    if skill == "deepcraft":
+        prompt = (
+            "You have the `deepcraft` skill loaded at /root/.config/opencode/skills/deepcraft/SKILL.md.\n"
+            "Apply the DeepCraft methodology (TDDAB planning, Protocol D systematic root-cause debugging).\n\n"
+            f"{prompt}"
+        )
+
     if agent_type == "opencode":
         opencode_model = model if model.startswith("opencode/") else f"services-gateway/{model}"
+        skill_mounts = []
+        opencode_flags = ["--auto"]
+        if skill == "deepcraft":
+            dc_path = Path("/home/ras/.config/opencode/skills/deepcraft")
+            if dc_path.exists():
+                skill_mounts = [
+                    "-v", f"{dc_path}:/root/.config/opencode/skills/deepcraft:ro",
+                    "-v", f"{dc_path}:/root/.opencode/skills/deepcraft:ro",
+                ]
+        else:
+            opencode_flags.append("--pure")
+
         cmd = [
             "docker", "run", "--rm",
             "--network", net,
             "-e", "https_proxy=http://services:8888",
             "-e", "http_proxy=http://services:8888",
+            *skill_mounts,
             "-v", f"{code_dir.resolve()}:/work",
             "-w", "/work",
             "bugbench-bench:latest",
-            "opencode", "run", "--pure", "--auto",
+            "opencode", "run", *opencode_flags,
             "-m", opencode_model,
             prompt
         ]
@@ -178,6 +198,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="space-bunny-alpha")
     ap.add_argument("--agent", choices=["agent", "opencode"], default="agent")
+    ap.add_argument("--skill", default="", choices=["", "deepcraft"], help="Skill to invoke in agent/OpenCode")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--task-id", default="")
     ap.add_argument("--timeout", type=int, default=240)
@@ -204,7 +225,7 @@ def main():
     for i, t in enumerate(tasks, 1):
         full_task = {**t, **sources.get(t["task_id"], {})}
         print(f"[{i:2d}/{len(tasks)}] Starting {t['task_id']} ({t['module']})...", flush=True)
-        res = run_container_task(full_task, args.model, args.timeout, args.agent)
+        res = run_container_task(full_task, args.model, args.timeout, args.agent, skill=args.skill)
         if res["fixed"]:
             fixed_count += 1
 

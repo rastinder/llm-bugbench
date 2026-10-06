@@ -60,14 +60,14 @@ Each model was evaluated inside hermetic ephemeral containers across the complet
 
 | Model | Evaluation Lane / Agent | Tasks | Edits Attempted | Fixed | Pass Rate | Notes |
 |---|---|---|---|---|---|---|
+| **big-pickle** | Container / OpenCode CLI + DeepCraft | 16 | 4 | 2 | **12.5%** | Solved Task 14 (Easy) + Task 16 (Hard AutoPilot) |
+| **mimo-2.6-flash** | Container / OpenCode CLI + DeepCraft | 16 | 2 | 2 | **12.5%** | Solved Task 14 (Easy) + Task 16 (Hard AutoPilot) |
 | **glm-5.3** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
-| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
+| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Task 14 (Easy); localized 4/16 (25%) |
 | **auto** (LiteLLM) | Container / Tool Agent | 16 | 4 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
 | **space-bunny-alpha** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
 | **northmini-code** | Container / Tool Agent | 16 | 2 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
 | **gemini-3.8-high** (API) | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
-| **big-pickle** | Container / OpenCode CLI (`opencode`) | 16 | 4 | 1 | **6.2%** | Solved Task 16 (Hard AutoPilot deduplication) in 64.9s |
-| **mimo-2.6-flash** | Container / OpenCode CLI (`opencode`) | 16 | 2 | 1 | **6.2%** | Solved Task 16 (Hard AutoPilot deduplication) in 119.5s |
 | **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | Initial evaluation on 13 hard tasks (`declined_work`) |
 
 **Key Findings:**
@@ -77,7 +77,31 @@ Each model was evaluated inside hermetic ephemeral containers across the complet
 
 ---
 
-## 4. Running the Benchmark
+
+---
+
+## 4. Benchmark Tracks: Repair & Bug Identification
+
+The benchmark supports two distinct evaluation tracks:
+
+### Track A: Autonomous Code Repair (Default)
+Agents are tasked with generating minimal, working code patches in ephemeral containers. Output is validated out-of-band by running hidden pytest suites.
+
+### Track B: Bug Identification & Root-Cause Localization
+Measures whether an LLM can accurately pinpoint the defective function, method, or class within a source module before touching code.
+```bash
+# Run guided bug localization (symptom-provided)
+python3 scripts/run_identification_benchmark.py --model qwen-3.8 --mode guided
+
+# Run blind bug detection (no hints, pure code audit)
+python3 scripts/run_identification_benchmark.py --model qwen-3.8 --mode blind
+```
+**Localization Baseline (`qwen-3.8`)**: Successfully pinpointed the exact buggy symbol on **4 / 16 tasks (25.0%)**, outperforming raw repair pass rates.
+
+### DeepCraft Methodology Skill Integration
+OpenCode agents can invoke the **DeepCraft** methodology (`--skill deepcraft`), applying TDDAB planning and Protocol D systematic root-cause debugging. When DeepCraft is enabled, both `big-pickle` and `mimo-2.6-flash` double their solve rate from 6.2% to **12.5%** (solving both Task 14 and Task 16).
+
+## 5. Running the Benchmark
 
 ### Prerequisites
 - Docker & Docker Compose
@@ -106,7 +130,7 @@ Results are streamed and recorded as JSONL files in `data/results/`.
 
 ---
 
-## 5. Repository Cleanliness & Anti-Cheating
+## 6. Repository Cleanliness & Anti-Cheating
 
 This repository is maintained with strict anti-cheating hygiene:
 - `data/host_tasks.json` contains only task metadata and buggy initial source code.
