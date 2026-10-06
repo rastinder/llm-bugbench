@@ -23,7 +23,9 @@ services:
       - /home/ras/pr-ai/quality:/srv/repos/quality:ro
       - /home/ras/marketplace-monitor:/srv/repos/marketplace-monitor:ro
       - /home/ras/llm-bugbench:/srv/repos/llm-bugbench:ro
+      - /home/ras/Desktop/AutoPilot-Jobs:/srv/repos/AutoPilot-Jobs:ro
       - ./docker/services/server.py:/srv/server.py:ro
+      - ./docker/services/sandbox.py:/srv/sandbox.py:ro
       - ./data:/srv/data:ro
     environment:
       - LITELLM_BASE=https://aitshirts.in/litellm/v1

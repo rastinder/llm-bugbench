@@ -33,6 +33,7 @@ REPO_MAP = {
     "/home/ras/pr-ai/quality": Path("/srv/repos/quality"),
     "/home/ras/marketplace-monitor": Path("/srv/repos/marketplace-monitor"),
     "/home/ras/llm-bugbench": Path("/srv/repos/llm-bugbench"),
+    "/home/ras/Desktop/AutoPilot-Jobs": Path("/srv/repos/AutoPilot-Jobs"),
 }
 
 MODEL_ALIASES = {
@@ -346,7 +347,7 @@ class GraderHandler(BaseHTTPRequestHandler):
                 node_ids = [test_rel]
 
             cmd = [sys.executable, "-m", "pytest", *node_ids, "-q", "--no-header", "-p", "no:cacheprovider"]
-            env = grader_env({"PYTHONPATH": str(d)})
+            env = grader_env({"PYTHONPATH": f"{d}:{d}/indeed_applier:{d}/08-shared:{d}/src"})
             proc = subprocess.run(cmd, cwd=d, capture_output=True, text=True, timeout=90, env=env)
 
             fixed = (proc.returncode == 0)

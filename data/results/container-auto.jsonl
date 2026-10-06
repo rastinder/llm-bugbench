@@ -12,3 +12,5 @@
 {"model": "container/auto", "task_id": "rec__monitor__1790389703313", "agent": "agent", "changed": false, "fixed": false, "latency_s": 58.1, "returncode": 0, "codebase": "marketplace-monitor"}
 {"model": "container/auto", "task_id": "rec__feedback__1790829085469", "agent": "agent", "changed": false, "fixed": false, "latency_s": 91.4, "returncode": 0, "codebase": "llm-bugbench"}
 {"model": "container/auto", "task_id": "rec__scoring__bugscore_errored_1790850000000", "agent": "agent", "changed": true, "fixed": true, "latency_s": 28.1, "returncode": 0, "codebase": "llm-bugbench"}
+{"model": "container/auto", "task_id": "rec__autopilot__job_matcher_threshold_1790600000000", "agent": "agent", "changed": true, "fixed": false, "latency_s": 33.8, "returncode": 0, "codebase": "auto-job-pilot"}
+{"model": "container/auto", "task_id": "rec__autopilot__retrieval_query_dedupe_1790550000000", "agent": "agent", "changed": true, "fixed": false, "latency_s": 240.0, "returncode": -1, "codebase": "auto-job-pilot"}

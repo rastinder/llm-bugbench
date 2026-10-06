@@ -12,3 +12,4 @@
 {"model": "container/northmini-code", "task_id": "rec__monitor__1790389703313", "agent": "agent", "changed": false, "fixed": false, "latency_s": 21.9, "returncode": 0, "codebase": "marketplace-monitor"}
 {"model": "container/northmini-code", "task_id": "rec__feedback__1790829085469", "agent": "agent", "changed": false, "fixed": false, "latency_s": 15.8, "returncode": 0, "codebase": "llm-bugbench"}
 {"model": "container/northmini-code", "task_id": "rec__scoring__bugscore_errored_1790850000000", "agent": "agent", "changed": true, "fixed": true, "latency_s": 17.1, "returncode": 0, "codebase": "llm-bugbench"}
+{"model": "container/northmini-code", "task_id": "rec__autopilot__job_matcher_threshold_1790600000000", "agent": "agent", "changed": true, "fixed": false, "latency_s": 157.6, "returncode": 0, "codebase": "auto-job-pilot"}

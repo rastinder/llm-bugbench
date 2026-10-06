@@ -36,11 +36,19 @@ SKIP = (".git", "node_modules", "models", ".cache", "dist", "build", "target",
 #: without bound -- one repo carried 4.8 GB of generated reports in `data/`, which was
 #: copied into every mutant sandbox until a disk filled. Recursive skip patterns mean a
 #: nested `data/` is skipped too, so this cannot be side-stepped by a subproject layout.
-SKIP_ANYWHERE = ("data", "logs", "var", "tmp", ".cache", "cache", "coverage",
-                 "fixtures_large", "snapshots", "artifacts", "reports")
+SKIP_ANYWHERE = (
+    "data", "logs", "var", "tmp", ".cache", "cache", "coverage",
+    "fixtures_large", "snapshots", "artifacts", "reports",
+    "data_folder", "out", "debug_snapshots", "browser_profile_live", "screenshots",
+)
+
+SKIP_EXTENSIONS = (
+    ".log", ".png", ".jpg", ".jpeg", ".mp4", ".webm", ".jsonl", ".tar",
+    ".gz", ".zip", ".bak", ".pyc", ".pyo",
+)
 
 #: Any single directory larger than this is not source we need.
-MAX_DIR_BYTES = 8 * 1024 * 1024
+MAX_DIR_BYTES = 24 * 1024 * 1024
 MAX_FILE_BYTES = 8 * 1024 * 1024
 
 
@@ -65,10 +73,16 @@ def _copy_filter(src_dir: str, names: list[str]) -> set[str]:
         if name in _IGNORE_NAMES or name in SKIP_ANYWHERE or name.startswith("."):
             dropped.add(name)
             continue
+        if any(name.endswith(ext) or ext in name for ext in SKIP_EXTENSIONS):
+            dropped.add(name)
+            continue
+        if name.startswith("captcha_") or name == "applications_log.json":
+            dropped.add(name)
+            continue
         path = Path(src_dir) / name
         if path.is_dir() and not path.is_symlink():
             try:
-                if dir_size(path) > MAX_DIR_BYTES:
+                if dir_size(path, skip_prunable=True) > MAX_DIR_BYTES:
                     dropped.add(name)
             except OSError:
                 dropped.add(name)
@@ -125,7 +139,7 @@ def build_sandbox(repo: Path, dest: Path, drop_tests: bool = False) -> Path:
                 # are unaffected.
                 continue
         else:
-            if name.endswith((".pyc", ".pyo")):
+            if any(name.endswith(ext) for ext in SKIP_EXTENSIONS) or name.startswith("captcha_"):
                 continue
             try:
                 size = item.stat().st_size
@@ -147,6 +161,11 @@ def build_sandbox(repo: Path, dest: Path, drop_tests: bool = False) -> Path:
                 path.unlink()
             elif path.is_dir() and _looks_like_test_dir(path):
                 shutil.rmtree(path, ignore_errors=True)
+    if (dest / "08-shared").exists() and not (dest / "shared").exists():
+        try:
+            (dest / "shared").symlink_to("08-shared")
+        except Exception:
+            pass
     return dest
 
 
@@ -172,8 +191,13 @@ def dir_size(path: Path, skip_prunable: bool = False) -> int:
     root = Path(path)
     for dirpath, dirnames, filenames in os.walk(root):
         if skip_prunable:
-            dirnames[:] = [d for d in dirnames if d not in SKIP_ANYWHERE]
+            dirnames[:] = [d for d in dirnames if d not in SKIP_ANYWHERE and d not in _IGNORE_NAMES and not d.startswith(".")]
         for f in filenames:
+            if skip_prunable:
+                if any(f.endswith(ext) or ext in f for ext in SKIP_EXTENSIONS):
+                    continue
+                if f.startswith("captcha_") or f == "applications_log.json":
+                    continue
             p = Path(dirpath) / f
             try:
                 if p.is_symlink():

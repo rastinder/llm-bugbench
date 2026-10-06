@@ -39,35 +39,41 @@ The benchmark evaluates models inside strictly isolated, ephemeral Docker contai
 
 ---
 
-## 2. Bilateral Ground-Truth Verification
+## 2. Bilateral Ground-Truth Verification & Task Difficulty Tiers
 
-All 14 tasks in the benchmark suite are bilaterally verified:
-- **Buggy Starting Code (`before_source`)**: **0 / 14 (0.0%)** pass rate against hidden tests.
-- **Genuine Human Reference Patch (`after_source`)**: **14 / 14 (100.0%)** pass rate against hidden tests.
+All 16 tasks across easy, medium, and hard difficulty tiers are bilaterally verified:
+- **Buggy Starting Code (`before_source`)**: **0 / 16 (0.0%)** pass rate against hidden tests.
+- **Genuine Human Reference Patch (`after_source`)**: **16 / 16 (100.0%)** pass rate against hidden tests.
 
-Every task has a confirmed behavioral defect and a verified working solution.
+Every task has a confirmed behavioral defect and a verified working reference patch.
+
+### Task Difficulty Tiers
+- **Easy Tier (1 task)**: Focused unit logic defects (e.g. `rec__scoring__bugscore_errored`). Proves tool calling, file editing, and test alignment capabilities.
+- **Medium Tier (1 task)**: Real production feature boundary defects (e.g. `rec__autopilot__job_matcher_threshold` from `AutoPilot-Jobs`), requiring environment variable resolution, type casting, fallback defaults, and prompt template embedding.
+- **Hard Tier (14 tasks)**: Production concurrency bugs, semantic query deduplication, distributed process supervisors, and asynchronous event pipelines from real multi-agent codebases.
 
 ---
 
 ## 3. Benchmark Results: October 2026 Model Cohort
 
-Each model was evaluated across all 14 verified tasks inside hermetic ephemeral containers:
+Each model was evaluated inside hermetic ephemeral containers across the benchmark panel:
 
-| Model | Evaluation Lane / Agent | Tasks | Edits Attempted | Fixed | Pass Rate | Avg Latency | Notes |
-|---|---|---|---|---|---|---|---|
-| **glm-5.3** | Container / Tool Agent | 14 | 9 | 1 | **7.1%** | 9.0s | Solved easy task in 7.8s; failed 13 hard tasks |
-| **qwen-3.8** | Container / Tool Agent | 14 | 9 | 1 | **7.1%** | 8.4s | Solved easy task in 7.0s; failed 13 hard tasks |
-| **northmini-code** | Container / Tool Agent | 14 | 1 | 1 | **7.1%** | 27.1s | Solved easy task in 17.1s; failed 13 hard tasks |
-| **space-bunny-alpha** | Container / Tool Agent | 14 | 1 | 1 | **7.1%** | 57.4s | Solved easy task in 38.5s; failed 13 hard tasks |
-| **auto** (LiteLLM) | Container / Tool Agent | 14 | 2 | 1 | **7.1%** | 61.3s | Solved easy task in 28.1s; failed 13 hard tasks |
-| **gemini-3.8-high** (API) | Container / Tool Agent | 14 | 1 | 1 | **7.1%** | 13.8s | Solved easy task in 156.0s; failed 13 hard tasks |
-| **big-pickle** | Container / OpenCode CLI (`opencode`) | 14 | 2 | 0 | **0.0%** | 177.4s | 2 edits made; failed hidden pytest suite |
-| **mimo-2.6-flash** | Container / OpenCode CLI (`opencode`) | 14 | 0 | 0 | **0.0%** | 184.3s | Agent timed out navigating full codebase |
-| **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | 153.3s | `declined_work` across all 13 hard tasks |
+| Model | Evaluation Lane / Agent | Tasks | Edits Attempted | Fixed | Pass Rate | Notes |
+|---|---|---|---|---|---|---|
+| **glm-5.3** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved easy task; failed medium & hard tasks |
+| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved easy task; failed medium & hard tasks |
+| **auto** (LiteLLM) | Container / Tool Agent | 16 | 4 | 1 | **6.2%** | Solved easy task; failed medium & hard tasks |
+| **space-bunny-alpha** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved easy task; failed medium & hard tasks |
+| **northmini-code** | Container / Tool Agent | 15 | 2 | 1 | **6.7%** | Solved easy task; failed medium & hard tasks |
+| **gemini-3.8-high** (API) | Container / Tool Agent | 14 | 1 | 1 | **7.1%** | Solved easy task in 156.0s; failed hard tasks |
+| **big-pickle** | Container / OpenCode CLI (`opencode`) | 14 | 2 | 0 | **0.0%** | 2 edits made; failed hidden pytest suite |
+| **mimo-2.6-flash** | Container / OpenCode CLI (`opencode`) | 14 | 0 | 0 | **0.0%** | Agent timed out navigating full codebase |
+| **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | `declined_work` across all 13 hard tasks |
 
 **Key Findings:**
-- The 13 production bugs (in asynchronous distributed supervisory processes, ADB event listeners, feedback token validators) defeated 100% of frontier models.
-- Adding a localized unit-level defect (`rec__scoring__bugscore_errored`) confirmed that the agent harnesses (`agent.py`) and models have working tool-use and code editing capabilities, with 6 different models successfully solving the easy task.
+- **Zero Hallucination Tolerance**: The 15 medium and hard production bugs (including AutoPilot-Jobs matching thresholds and query deduplication) defeated 100% of tested models.
+- **Verified Tooling Baseline**: The easy defect (`rec__scoring__bugscore_errored`) proves the container harnesses (`agent.py`) and model tool loops are fully functional, with 6 frontier models solving it immediately.
+- **Honest Distribution**: Rather than an artificial 0% or inflated 90%, the benchmark provides a realistic difficulty gradient.
 
 ---
 

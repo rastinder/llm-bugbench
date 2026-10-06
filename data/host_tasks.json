@@ -241,5 +241,45 @@
     "verified": true,
     "reject_reason": "",
     "description": "In BugScore.value, an errored node (self.errored is True) is incorrectly awarded full credit (1.0) when self.passed is True. Fix BugScore.value so that errored nodes never receive credit and always evaluate to 0.0."
+  },
+  {
+    "task_id": "rec__autopilot__job_matcher_threshold_1790600000000",
+    "codebase": "auto-job-pilot",
+    "repo": "/home/ras/Desktop/AutoPilot-Jobs",
+    "module": "indeed_applier/job_matcher.py",
+    "test_rel": "test_recorded.py",
+    "focus_ids": [
+      "test_env_threshold_moves_the_decision",
+      "test_prompt_embeds_resolved_threshold",
+      "test_unparseable_env_falls_back_to_default"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "medium",
+    "fix_time": 1790600000000,
+    "session_id": "ses_autopilot_matcher",
+    "verified": true,
+    "reject_reason": "",
+    "description": "In indeed_applier/job_matcher.py, make the match threshold configurable via an optional threshold: float | None = None parameter and APPLY_MATCH_THRESHOLD environment variable, falling back to 0.6 if unparseable or unset. Ensure os is imported."
+  },
+  {
+    "task_id": "rec__autopilot__retrieval_query_dedupe_1790550000000",
+    "codebase": "auto-job-pilot",
+    "repo": "/home/ras/Desktop/AutoPilot-Jobs",
+    "module": "indeed_applier/field_extractor.py",
+    "test_rel": "test_recorded.py",
+    "focus_ids": [
+      "test_build_experience_retrieval_query_dedupes_multi_word_skill",
+      "test_build_experience_retrieval_query_never_repeats_the_skill",
+      "test_build_experience_retrieval_query_strips_scaffolding_words"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1790550000000,
+    "session_id": "ses_autopilot_retrieval",
+    "verified": true,
+    "reject_reason": "",
+    "description": "In indeed_applier/field_extractor.py, build_experience_retrieval_query repeats the skill phrase and includes redundant scaffolding words (experience, years), degrading sparse search. Update build_experience_retrieval_query to deduplicate tokens and strip scaffolding stopwords while preserving token order."
   }
 ]
