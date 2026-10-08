@@ -68,7 +68,6 @@ Each model was evaluated inside hermetic ephemeral containers across the complet
 | **space-bunny-alpha** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
 | **northmini-code** | Container / Tool Agent | 16 | 2 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
 | **gemini-3.8-high** (API) | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
-| **gemini-3.8-flash-high** (Antigravity) | Antigravity CLI (`agy` with `bwrap` FS isolation) | 13 | 0 | 0 | **0.0%** | Initial evaluation on 13 hard tasks (`declined_work`) |
 
 **Key Findings:**
 - **Zero Hallucination Tolerance**: The 15 medium and hard production bugs (including AutoPilot-Jobs matching thresholds and query deduplication) defeated 100% of tested models.
