@@ -65,11 +65,13 @@ Each model was evaluated inside hermetic ephemeral containers across the complet
 | **glm-5.2** | Container / Tool Agent | 16 | 9 | 2 | **12.5%** | Solved Task 13 (SignalR Metrics) + Task 14 (SignalR Log Rotation) |
 | **big-pickle** | Container / OpenCode CLI + DeepCraft | 16 | 4 | 2 | **12.5%** | Solved Easy scoring + AutoPilot query dedupe |
 | **mimo-2.6-flash** | Container / OpenCode CLI + DeepCraft | 16 | 2 | 2 | **12.5%** | Solved Easy scoring + AutoPilot query dedupe |
-| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Easy scoring baseline |
-| **gemini-3.8-high** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Easy scoring baseline |
+| **glm-5.3** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Task 14 (Easy scoring baseline) |
+| **gemini-3.8-high** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy scoring baseline) |
+| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Easy scoring baseline; localized 4/16 (25%) in ID track |
 | **auto** (LiteLLM) | Container / Tool Agent | 16 | 4 | 1 | **6.2%** | Solved Easy scoring baseline |
 | **northmini-code** | Container / Tool Agent | 16 | 2 | 1 | **6.2%** | Solved Easy scoring baseline |
 | **space-bunny-alpha** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Easy scoring baseline |
+| **gemini-3.8-flash-high** | Antigravity CLI (`agy` with `bwrap`) | Host panel | Ongoing | 1 | **50.0%** | Solved hard multi-level defect (`rec__herdr_supervisor__multilevel_l2`) |
 
 **Key Findings:**
 - **Zero Hallucination Tolerance**: The 15 medium and hard production bugs (including AutoPilot-Jobs matching thresholds and query deduplication) defeated 100% of tested models.
