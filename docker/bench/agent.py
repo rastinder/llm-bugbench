@@ -174,7 +174,7 @@ def call_gateway(gateway_url: str, model: str, messages: list[dict], use_tools: 
         headers={"Content-Type": "application/json"},
         method="POST"
     )
-    with urllib.request.urlopen(req, timeout=120) as resp:
+    with urllib.request.urlopen(req, timeout=300) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 

@@ -47,10 +47,12 @@ All 16 tasks across easy, medium, and hard difficulty tiers are bilaterally veri
 
 Every task has a confirmed behavioral defect and a verified working reference patch.
 
-### Task Difficulty Tiers
-- **Easy Tier (1 task)**: Focused unit logic defects (e.g. `rec__scoring__bugscore_errored`). Proves tool calling, file editing, and test alignment capabilities.
-- **Medium Tier (1 task)**: Real production feature boundary defects (e.g. `rec__autopilot__job_matcher_threshold` from `AutoPilot-Jobs`), requiring environment variable resolution, type casting, fallback defaults, and prompt template embedding.
-- **Hard Tier (14 tasks)**: Production concurrency bugs, semantic query deduplication, distributed process supervisors, and asynchronous event pipelines from real multi-agent codebases.
+### Task Difficulty & Architecture Tiers
+- **Multi-Level Tasks (5 tasks)**: Layered defect challenges where models must resolve multiple interdependent bugs in a single run (e.g. exception crash handling combined with state leak cleanup in `herdr_supervisor`, directory creation + UI chrome filtering in `monitor`, and end-to-end SignalR protocol handling).
+- **Copilot SignalR Protocol Tasks (5 tasks)**: Real-world reverse-engineered Microsoft 365 Copilot SignalR streaming and WebSocket protocol challenges (`copilot_signalr.py`), including `EarlyProgress` frame filtering, URL `variants` query parameter encoding, ISO-8601 `Metrics` handshake timestamps, and thread-safe bounded log rotation.
+- **AutoPilot & Pipeline Tasks (6 tasks)**: Production feature boundaries, job match thresholds, token query deduplication, and JUnit XML test reporting.
+- **Vague User Problem Statements**: Models are prompted with realistic, unguided user bug descriptions (*"I want to do X, but it is giving me an error. Find and fix the issue."*) without line numbers, tracebacks, or pre-chewed hints.
+- **30-Minute Hermetic Timeouts**: Each model gets 30 minutes (1800s) inside its isolated workspace to inspect code, hypothesize, apply patches, and verify its work.
 
 ---
 
@@ -60,14 +62,14 @@ Each model was evaluated inside hermetic ephemeral containers across the complet
 
 | Model | Evaluation Lane / Agent | Tasks | Edits Attempted | Fixed | Pass Rate | Notes |
 |---|---|---|---|---|---|---|
-| **big-pickle** | Container / OpenCode CLI + DeepCraft | 16 | 4 | 2 | **12.5%** | Solved Task 14 (Easy) + Task 16 (Hard AutoPilot) |
-| **mimo-2.6-flash** | Container / OpenCode CLI + DeepCraft | 16 | 2 | 2 | **12.5%** | Solved Task 14 (Easy) + Task 16 (Hard AutoPilot) |
-| **glm-5.3** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
-| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Task 14 (Easy); localized 4/16 (25%) |
-| **auto** (LiteLLM) | Container / Tool Agent | 16 | 4 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
-| **space-bunny-alpha** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
-| **northmini-code** | Container / Tool Agent | 16 | 2 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
-| **gemini-3.8-high** (API) | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Task 14 (Easy); failed medium & hard tasks |
+| **glm-5.2** | Container / Tool Agent | 16 | 9 | 2 | **12.5%** | Solved Task 13 (SignalR Metrics) + Task 14 (SignalR Log Rotation) |
+| **big-pickle** | Container / OpenCode CLI + DeepCraft | 16 | 4 | 2 | **12.5%** | Solved Easy scoring + AutoPilot query dedupe |
+| **mimo-2.6-flash** | Container / OpenCode CLI + DeepCraft | 16 | 2 | 2 | **12.5%** | Solved Easy scoring + AutoPilot query dedupe |
+| **qwen-3.8** | Container / Tool Agent | 16 | 10 | 1 | **6.2%** | Solved Easy scoring baseline |
+| **gemini-3.8-high** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Easy scoring baseline |
+| **auto** (LiteLLM) | Container / Tool Agent | 16 | 4 | 1 | **6.2%** | Solved Easy scoring baseline |
+| **northmini-code** | Container / Tool Agent | 16 | 2 | 1 | **6.2%** | Solved Easy scoring baseline |
+| **space-bunny-alpha** | Container / Tool Agent | 16 | 1 | 1 | **6.2%** | Solved Easy scoring baseline |
 
 **Key Findings:**
 - **Zero Hallucination Tolerance**: The 15 medium and hard production bugs (including AutoPilot-Jobs matching thresholds and query deduplication) defeated 100% of tested models.

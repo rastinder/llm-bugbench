@@ -1,0 +1,16 @@
+{"model": "container/glm-5.2", "task_id": "rec__herdr_supervisor__multilevel_l1", "agent": "agent", "changed": false, "fixed": false, "latency_s": 26.3, "returncode": 0, "codebase": "herdr"}
+{"model": "container/glm-5.2", "task_id": "rec__herdr_supervisor__multilevel_l2", "agent": "agent", "changed": false, "fixed": false, "latency_s": 76.9, "returncode": 0, "codebase": "herdr"}
+{"model": "container/glm-5.2", "task_id": "rec__pi_network_quality__1790275306010", "agent": "agent", "changed": true, "fixed": false, "latency_s": 6.0, "returncode": 0, "codebase": "quality"}
+{"model": "container/glm-5.2", "task_id": "rec__pi_network_quality__1790277455685", "agent": "agent", "changed": true, "fixed": false, "latency_s": 5.9, "returncode": 0, "codebase": "quality"}
+{"model": "container/glm-5.2", "task_id": "rec__monitor__multilevel_l1", "agent": "agent", "changed": true, "fixed": false, "latency_s": 6.5, "returncode": 0, "codebase": "monitor"}
+{"model": "container/glm-5.2", "task_id": "rec__monitor__multilevel_l2", "agent": "agent", "changed": true, "fixed": false, "latency_s": 8.1, "returncode": 0, "codebase": "monitor"}
+{"model": "container/glm-5.2", "task_id": "rec__feedback__1790829085469", "agent": "agent", "changed": true, "fixed": false, "latency_s": 6.2, "returncode": 0, "codebase": "llm-bugbench"}
+{"model": "container/glm-5.2", "task_id": "rec__scoring__bugscore_errored_1790850000000", "agent": "agent", "changed": true, "fixed": false, "latency_s": 7.1, "returncode": 0, "codebase": "llm-bugbench"}
+{"model": "container/glm-5.2", "task_id": "rec__autopilot__job_matcher_threshold_1790600000000", "agent": "agent", "changed": false, "fixed": false, "latency_s": 25.5, "returncode": 0, "codebase": "auto-job-pilot"}
+{"model": "container/glm-5.2", "task_id": "rec__autopilot__retrieval_query_dedupe_1790550000000", "agent": "agent", "changed": false, "fixed": false, "latency_s": 26.4, "returncode": 0, "codebase": "auto-job-pilot"}
+{"model": "container/glm-5.2", "task_id": "rec__copilot__signalr_early_progress", "agent": "agent", "changed": false, "fixed": false, "latency_s": 12.7, "returncode": 0, "codebase": "copilot"}
+{"model": "container/glm-5.2", "task_id": "rec__copilot__signalr_url_variants", "agent": "agent", "changed": true, "fixed": false, "latency_s": 7.1, "returncode": 0, "codebase": "copilot"}
+{"model": "container/glm-5.2", "task_id": "rec__copilot__signalr_metrics_timestamps", "agent": "agent", "changed": true, "fixed": true, "latency_s": 7.5, "returncode": 0, "codebase": "copilot"}
+{"model": "container/glm-5.2", "task_id": "rec__copilot__signalr_frame_log_rotation", "agent": "agent", "changed": true, "fixed": true, "latency_s": 9.3, "returncode": 0, "codebase": "copilot"}
+{"model": "container/glm-5.2", "task_id": "rec__copilot__signalr_multilevel", "agent": "agent", "changed": false, "fixed": false, "latency_s": 16.5, "returncode": 0, "codebase": "copilot"}
+{"model": "container/glm-5.2", "task_id": "rec__herdr_supervisor__1787329596361", "agent": "agent", "changed": false, "fixed": false, "latency_s": 6.2, "returncode": 0, "codebase": "bin"}

@@ -1,90 +1,37 @@
 [
   {
-    "task_id": "rec__herdr_supervisor__1787327878875",
-    "codebase": "bin",
-    "repo": "/home/ras/.local/bin",
-    "module": "herdr_supervisor.py",
-    "test_rel": "test_herdr_supervisor.py",
-    "focus_ids": [],
-    "language": "python",
-    "bugs_total": 1,
-    "difficulty": "hard",
-    "fix_time": 1787327878875,
-    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
-    "verified": true,
-    "reject_reason": ""
-  },
-  {
-    "task_id": "rec__herdr_supervisor__1787329596361",
-    "codebase": "bin",
+    "task_id": "rec__herdr_supervisor__multilevel_l1",
+    "codebase": "herdr",
     "repo": "/home/ras/.local/bin",
     "module": "herdr_supervisor.py",
     "test_rel": "test_herdr_supervisor.py",
     "focus_ids": [
-      "TestSupervisorPass::test_nudge_uses_confirmed_delivery"
-    ],
-    "language": "python",
-    "bugs_total": 1,
-    "difficulty": "hard",
-    "fix_time": 1787329596361,
-    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
-    "verified": true,
-    "reject_reason": ""
-  },
-  {
-    "task_id": "rec__herdr_supervisor__1787349499727",
-    "codebase": "bin",
-    "repo": "/home/ras/.local/bin",
-    "module": "herdr_supervisor.py",
-    "test_rel": "test_herdr_supervisor.py",
-    "focus_ids": [
-      "TestSupervisorPass::test_excluded_pane_never_touched",
+      "TestSupervisorPass::test_busy_agents_are_skipped",
+      "TestSupervisorPass::test_idle_stuck_gets_nudge",
+      "TestSupervisorPass::test_judge_error_is_safe_skip",
+      "TestSupervisorPass::test_nudge_uses_confirmed_delivery",
+      "TestSupervisorPass::test_failed_delivery_no_cooldown_so_retry_happens",
       "TestSupervisorPass::test_stale_state_cleaned_when_pane_disappears"
     ],
     "language": "python",
-    "bugs_total": 1,
+    "bugs_total": 3,
     "difficulty": "hard",
-    "fix_time": 1787349499727,
-    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
-    "verified": true,
-    "reject_reason": ""
+    "description": "I want the supervisor to handle judge exceptions without crashing and clean up tracking state when panes close, but when evaluating panes and handling errors it is crashing and leaking stale pane state. Find and fix the issue."
   },
   {
-    "task_id": "rec__herdr_supervisor__1787350107899",
-    "codebase": "bin",
+    "task_id": "rec__herdr_supervisor__multilevel_l2",
+    "codebase": "herdr",
     "repo": "/home/ras/.local/bin",
     "module": "herdr_supervisor.py",
     "test_rel": "test_herdr_supervisor.py",
     "focus_ids": [
       "TestStopWatcher::test_detect_stops_finds_working_to_idle",
-      "TestStopWatcher::test_excluded_pane_not_watched",
-      "TestStopWatcher::test_tick_once_ignores_still_working",
       "TestStopWatcher::test_tick_once_nudges_stopped_agent"
     ],
     "language": "python",
-    "bugs_total": 1,
+    "bugs_total": 2,
     "difficulty": "hard",
-    "fix_time": 1787350107899,
-    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
-    "verified": true,
-    "reject_reason": ""
-  },
-  {
-    "task_id": "rec__herdr_supervisor__1790296045258",
-    "codebase": "bin",
-    "repo": "/home/ras/.local/bin",
-    "module": "herdr_supervisor.py",
-    "test_rel": "test_herdr_supervisor.py",
-    "focus_ids": [
-      "TestSupervisorPass::test_malformed_action_is_none"
-    ],
-    "language": "python",
-    "bugs_total": 1,
-    "difficulty": "hard",
-    "fix_time": 1790296045258,
-    "session_id": "ses_f2e6f0fcdffeQ8XaGRqEvvJU6D",
-    "verified": true,
-    "reject_reason": ""
+    "description": "I want the supervisor to immediately detect when an agent pane stops working and validate judge verdicts, but when checking pane states or receiving unexpected verdict data it is giving me an error. Find and fix the issue."
   },
   {
     "task_id": "rec__pi_network_quality__1790275306010",
@@ -101,24 +48,8 @@
     "fix_time": 1790275306010,
     "session_id": "ses_f2f4e3d5cffersVLUR7QleMESa",
     "verified": true,
-    "reject_reason": ""
-  },
-  {
-    "task_id": "rec__pi_network_quality__1790277095470",
-    "codebase": "quality",
-    "repo": "/home/ras/pr-ai/quality",
-    "module": "pi_network_quality.py",
-    "test_rel": "test_pi_network_quality.py",
-    "focus_ids": [
-      "PiNetworkQualityTest::test_prompt_contains_no_precomputed_target"
-    ],
-    "language": "python",
-    "bugs_total": 1,
-    "difficulty": "hard",
-    "fix_time": 1790277095470,
-    "session_id": "ses_f2f4e3d5cffersVLUR7QleMESa",
-    "verified": true,
-    "reject_reason": ""
+    "reject_reason": "",
+    "description": "I want the network discovery agent to execute its initial inspection using the ipython tool, but the first action is giving me an error and failing to execute. Find and fix the issue."
   },
   {
     "task_id": "rec__pi_network_quality__1790277455685",
@@ -135,81 +66,40 @@
     "fix_time": 1790277455685,
     "session_id": "ses_f2f4e3d5cffersVLUR7QleMESa",
     "verified": true,
-    "reject_reason": ""
+    "reject_reason": "",
+    "description": "I want to verify that network discovery evidence was actually gathered by the tools, but evaluating the discovery run is giving me an error. Find and fix the issue."
   },
   {
-    "task_id": "rec__monitor__1790303646272",
-    "codebase": "marketplace-monitor",
+    "task_id": "rec__monitor__multilevel_l1",
+    "codebase": "monitor",
     "repo": "/home/ras/marketplace-monitor",
     "module": "monitor.py",
-    "test_rel": "tests/test_monitor.py",
+    "test_rel": "test_monitor.py",
     "focus_ids": [
-      "MonitorTests::test_extract_listings_ignores_controls_and_cards"
+      "MonitorTests::test_store_deduplicates_listing_and_keeps_observations",
+      "MonitorTests::test_extract_listings_ignores_controls_and_cards",
+      "MonitorTests::test_extract_listings_ignores_notification_controls"
     ],
     "language": "python",
-    "bugs_total": 1,
+    "bugs_total": 2,
     "difficulty": "hard",
-    "fix_time": 1790303646272,
-    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
-    "verified": true,
-    "reject_reason": ""
+    "description": "I want to save marketplace listing evidence and extract clean listings, but saving snapshots gives a directory error and UI buttons are incorrectly extracted as items. Find and fix the issue."
   },
   {
-    "task_id": "rec__monitor__1790361759492",
-    "codebase": "marketplace-monitor",
+    "task_id": "rec__monitor__multilevel_l2",
+    "codebase": "monitor",
     "repo": "/home/ras/marketplace-monitor",
     "module": "monitor.py",
-    "test_rel": "tests/test_monitor.py",
-    "focus_ids": [],
-    "language": "python",
-    "bugs_total": 1,
-    "difficulty": "hard",
-    "fix_time": 1790361759492,
-    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
-    "verified": true,
-    "reject_reason": ""
-  },
-  {
-    "task_id": "rec__monitor__1790389642770",
-    "codebase": "marketplace-monitor",
-    "repo": "/home/ras/marketplace-monitor",
-    "module": "monitor.py",
-    "test_rel": "tests/test_monitor.py",
+    "test_rel": "test_monitor.py",
     "focus_ids": [
-      "MonitorTests::test_calendar_management_is_service",
-      "MonitorTests::test_fall_cleanup_is_service",
-      "MonitorTests::test_grow_business_offer_is_service",
       "MonitorTests::test_handyman_trade_word_is_service",
       "MonitorTests::test_it_solutions_is_service",
-      "MonitorTests::test_laser_engraving_is_service",
-      "MonitorTests::test_offer_language_alone_is_service"
+      "MonitorTests::test_collapsed_fragments_keep_longest_title"
     ],
     "language": "python",
-    "bugs_total": 1,
+    "bugs_total": 2,
     "difficulty": "hard",
-    "fix_time": 1790389642770,
-    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
-    "verified": true,
-    "reject_reason": ""
-  },
-  {
-    "task_id": "rec__monitor__1790389703313",
-    "codebase": "marketplace-monitor",
-    "repo": "/home/ras/marketplace-monitor",
-    "module": "monitor.py",
-    "test_rel": "tests/test_monitor.py",
-    "focus_ids": [
-      "MonitorTests::test_card_fragments_collapse_to_one_listing",
-      "MonitorTests::test_collapsed_fragments_keep_longest_title",
-      "MonitorTests::test_extract_listings_ignores_controls_and_cards"
-    ],
-    "language": "python",
-    "bugs_total": 1,
-    "difficulty": "hard",
-    "fix_time": 1790389703313,
-    "session_id": "ses_f29a0d648ffeRgry7HLLMQ6qOs",
-    "verified": true,
-    "reject_reason": ""
+    "description": "I want the monitor to classify trade services accurately and merge duplicate listings, but trade listings are failing classification and distance labels are being extracted as titles. Find and fix the issue."
   },
   {
     "task_id": "rec__feedback__1790829085469",
@@ -224,7 +114,8 @@
     "fix_time": 1790829085469,
     "session_id": "ses_f14be9002ffei6pkJwJQ9oytNR",
     "verified": true,
-    "reject_reason": ""
+    "reject_reason": "",
+    "description": "I want to parse test execution results from JUnit XML reports, but when an empty report is processed it is giving me an error and misinterpreting the results. Find and fix the issue."
   },
   {
     "task_id": "rec__scoring__bugscore_errored_1790850000000",
@@ -240,7 +131,7 @@
     "session_id": "ses_easy_scoring_bugscore",
     "verified": true,
     "reject_reason": "",
-    "description": "In BugScore.value, an errored node (self.errored is True) is incorrectly awarded full credit (1.0) when self.passed is True. Fix BugScore.value so that errored nodes never receive credit and always evaluate to 0.0."
+    "description": "I want to calculate benchmark test scores with BugScore, but when a test node encounters an error it is calculating the score incorrectly and giving me an error. Find and fix the issue."
   },
   {
     "task_id": "rec__autopilot__job_matcher_threshold_1790600000000",
@@ -260,7 +151,7 @@
     "session_id": "ses_autopilot_matcher",
     "verified": true,
     "reject_reason": "",
-    "description": "In indeed_applier/job_matcher.py, make the match threshold configurable via an optional threshold: float | None = None parameter and APPLY_MATCH_THRESHOLD environment variable, falling back to 0.6 if unparseable or unset. Ensure os is imported."
+    "description": "I want to configure the match score threshold using an argument or environment variable, but running with custom thresholds is giving me an error. Find and fix the issue."
   },
   {
     "task_id": "rec__autopilot__retrieval_query_dedupe_1790550000000",
@@ -280,6 +171,96 @@
     "session_id": "ses_autopilot_retrieval",
     "verified": true,
     "reject_reason": "",
-    "description": "In indeed_applier/field_extractor.py, build_experience_retrieval_query repeats the skill phrase and includes redundant scaffolding words (experience, years), degrading sparse search. Update build_experience_retrieval_query to deduplicate tokens and strip scaffolding stopwords while preserving token order."
+    "description": "I want to build retrieval queries from experience questions, but the generated queries contain repeated words and formatting issues that are giving me an error in search. Find and fix the issue."
+  },
+  {
+    "task_id": "rec__copilot__signalr_early_progress",
+    "codebase": "copilot",
+    "repo": "/home/ras/llm-bugbench",
+    "module": "src/bugbench/copilot_signalr.py",
+    "test_rel": "tests/test_copilot_signalr.py",
+    "focus_ids": [
+      "test_early_progress_is_ignored_but_real_delta_is_kept"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "medium",
+    "description": "I want to extract response text from SignalR streaming frames, but intermediate progress updates are leaking into the output and giving me an error. Find and fix the issue."
+  },
+  {
+    "task_id": "rec__copilot__signalr_url_variants",
+    "codebase": "copilot",
+    "repo": "/home/ras/llm-bugbench",
+    "module": "src/bugbench/copilot_signalr.py",
+    "test_rel": "tests/test_copilot_signalr.py",
+    "focus_ids": [
+      "test_rebuilt_url_preserves_observed_variants_and_encodes_values",
+      "test_missing_variants_is_not_invented"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "medium",
+    "description": "I want to construct the SignalR WebSocket connection URL with session parameters and variants, but the connection URL is malformed and failing the handshake. Find and fix the issue."
+  },
+  {
+    "task_id": "rec__copilot__signalr_metrics_timestamps",
+    "codebase": "copilot",
+    "repo": "/home/ras/llm-bugbench",
+    "module": "src/bugbench/copilot_signalr.py",
+    "test_rel": "tests/test_copilot_signalr.py",
+    "focus_ids": [
+      "test_metrics_matches_captured_browser_shape"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "medium",
+    "description": "I want to build the SignalR metrics payload for the connection handshake, but the metrics frame shape is invalid and giving me an error. Find and fix the issue."
+  },
+  {
+    "task_id": "rec__copilot__signalr_frame_log_rotation",
+    "codebase": "copilot",
+    "repo": "/home/ras/llm-bugbench",
+    "module": "src/bugbench/copilot_signalr.py",
+    "test_rel": "tests/test_copilot_signalr.py",
+    "focus_ids": [
+      "test_frame_log_rotates_and_stays_bounded"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "medium",
+    "description": "I want to log SignalR diagnostic frames to disk, but the log file grows without bounds and fails to rotate when it exceeds the maximum size. Find and fix the issue."
+  },
+  {
+    "task_id": "rec__copilot__signalr_multilevel",
+    "codebase": "copilot",
+    "repo": "/home/ras/llm-bugbench",
+    "module": "src/bugbench/copilot_signalr.py",
+    "test_rel": "tests/test_copilot_signalr.py",
+    "focus_ids": [
+      "test_early_progress_is_ignored_but_real_delta_is_kept",
+      "test_rebuilt_url_preserves_observed_variants_and_encodes_values"
+    ],
+    "language": "python",
+    "bugs_total": 2,
+    "difficulty": "hard",
+    "description": "I want to connect to Copilot SignalR and stream clean text, but the connection URL fails the handshake and early progress frames leak into the response text. Find and fix the issue."
+  },
+  {
+    "task_id": "rec__herdr_supervisor__1787329596361",
+    "codebase": "bin",
+    "repo": "/home/ras/.local/bin",
+    "module": "herdr_supervisor.py",
+    "test_rel": "test_herdr_supervisor.py",
+    "focus_ids": [
+      "TestSupervisorPass::test_nudge_uses_confirmed_delivery"
+    ],
+    "language": "python",
+    "bugs_total": 1,
+    "difficulty": "hard",
+    "fix_time": 1787329596361,
+    "session_id": "ses_fdb4ca30cffejQNVSoGy5jWE95",
+    "verified": true,
+    "reject_reason": "",
+    "description": "I want the supervisor to send nudge prompts to stuck agent panes and retry if unconfirmed, but nudging panes is failing and giving me an error. Find and fix the issue."
   }
 ]

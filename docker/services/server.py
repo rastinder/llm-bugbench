@@ -37,7 +37,7 @@ REPO_MAP = {
 }
 
 MODEL_ALIASES = {
-    "space-bunny-alpha": "openrouter-space-bunny-alpha",
+    "space-bunny-alpha": "auto",
     "openrouter-space-bunny-alpha": "openrouter-space-bunny-alpha",
     "gemini-3.8-high": "gemini-3.7-flash",
     "gemini-3.8-flash-high": "gemini-3.7-flash",
@@ -45,7 +45,7 @@ MODEL_ALIASES = {
     "gemini-3.6-flash": "gemini-3.6-flash",
     "glm-5.2": "openrouter-glm-5.2",
     "openrouter-glm-5.2": "openrouter-glm-5.2",
-    "glm-5.3": "openrouter-glm-5.3-flash",
+    "glm-5.3": "openrouter-glm-5.2",
     "openrouter-glm-5.3": "openrouter-glm-5.3-flash",
     "qwen-3.8": "openrouter-qwen-3.8",
     "openrouter-qwen-3.8": "openrouter-qwen-3.8",

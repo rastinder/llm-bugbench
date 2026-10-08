@@ -201,7 +201,7 @@ def main():
     ap.add_argument("--skill", default="", choices=["", "deepcraft"], help="Skill to invoke in agent/OpenCode")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--task-id", default="")
-    ap.add_argument("--timeout", type=int, default=240)
+    ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--out", default="")
     args = ap.parse_args()
 
